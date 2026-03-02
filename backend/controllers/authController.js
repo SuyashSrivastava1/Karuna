@@ -9,15 +9,23 @@ const registerUser = async (req, res) => {
         medical_specialty, pharmacy_address
     } = req.body;
 
-    // Input validation
-    if (!phone || !full_name || !role) {
-        return res.status(400).json({ message: 'phone, full_name, and role are required fields' });
+    // Email is now the primary required identifier
+    if (!email || !full_name || !role) {
+        return res.status(400).json({ message: 'email, full_name, and role are required fields' });
     }
 
-    // Sanitize phone: must be E.164 format-ish
-    const phoneRegex = /^\+?[1-9]\d{6,14}$/;
-    if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
-        return res.status(400).json({ message: 'Invalid phone number format. Use format: +91XXXXXXXXXX' });
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+        return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    // Sanitize phone: must be E.164 format-ish (if provided)
+    if (phone) {
+        const phoneRegex = /^\+?[1-9]\d{6,14}$/;
+        if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+            return res.status(400).json({ message: 'Invalid phone number format. Use format: +91XXXXXXXXXX' });
+        }
     }
 
     // Trim and validate full_name
@@ -40,13 +48,15 @@ const registerUser = async (req, res) => {
     }
 
     try {
-        const cleanPhone = phone.replace(/\s/g, '');
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanPhone = phone ? phone.replace(/\s/g, '') : null;
 
         const { data: authData, error: authError } = await supabase.auth.signUp({
-            email: email || `${cleanPhone.replace(/\+/g, '')}@karuna.app`,
-            password: password || cleanPhone,
+            email: cleanEmail,
+            password: password || cleanEmail,
             options: {
-                data: { phone: cleanPhone, full_name: trimmedName, role }
+                data: { phone: cleanPhone, full_name: trimmedName, role },
+                emailRedirectTo: undefined
             }
         });
 
@@ -60,6 +70,7 @@ const registerUser = async (req, res) => {
         const profileData = {
             id: authData.user.id,
             full_name: trimmedName,
+            email: cleanEmail,
             phone: cleanPhone,
             role,
             profession: profession || null,
@@ -78,44 +89,51 @@ const registerUser = async (req, res) => {
         }
 
         res.status(201).json({
-            message: 'Registration successful',
+            message: 'Registration successful. Check your email to verify your account.',
             user: authData.user,
             session: authData.session
         });
     } catch (error) {
         // Handle duplicate registration
         if (error.message && error.message.includes('already registered')) {
-            return res.status(409).json({ message: 'A user with this phone/email already exists' });
+            return res.status(409).json({ message: 'A user with this email already exists' });
         }
         res.status(400).json({ message: error.message });
     }
 };
 
-// @desc    Login user / Send OTP
+// @desc    Login user — sends OTP to email
 // @route   POST /api/auth/login
 const loginUser = async (req, res) => {
-    const { phone } = req.body;
+    const { email } = req.body;
 
-    if (!phone) {
-        return res.status(400).json({ message: 'phone is required' });
+    if (!email) {
+        return res.status(400).json({ message: 'email is required' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+        return res.status(400).json({ message: 'Invalid email format' });
     }
 
     try {
-        const { data, error } = await supabase.auth.signInWithOtp({ phone: phone.replace(/\s/g, '') });
+        const { data, error } = await supabase.auth.signInWithOtp({
+            email: email.trim().toLowerCase()
+        });
         if (error) throw error;
-        res.status(200).json({ message: 'OTP sent to your phone', data });
+        res.status(200).json({ message: 'OTP sent to your email address', data });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
 };
 
-// @desc    Verify OTP
+// @desc    Verify email OTP
 // @route   POST /api/auth/verify-otp
 const verifyOTP = async (req, res) => {
-    const { phone, token } = req.body;
+    const { email, token } = req.body;
 
-    if (!phone || !token) {
-        return res.status(400).json({ message: 'phone and token are required' });
+    if (!email || !token) {
+        return res.status(400).json({ message: 'email and token are required' });
     }
 
     // Validate OTP format (6 digits)
@@ -125,9 +143,9 @@ const verifyOTP = async (req, res) => {
 
     try {
         const { data, error } = await supabase.auth.verifyOtp({
-            phone: phone.replace(/\s/g, ''),
+            email: email.trim().toLowerCase(),
             token,
-            type: 'sms'
+            type: 'email'
         });
         if (error) throw error;
         res.status(200).json(data);
@@ -159,7 +177,7 @@ const getMe = async (req, res) => {
 // @route   PUT /api/auth/me
 const updateMe = async (req, res) => {
     const allowedFields = [
-        'full_name', 'phone', 'profession', 'blood_group', 'date_of_birth',
+        'full_name', 'phone', 'email', 'profession', 'blood_group', 'date_of_birth',
         'medical_specialty', 'pharmacy_address',
         'vehicle_availability', 'medical_equipment', 'medical_fitness',
         'availability_duration', 'disaster_knowledge'

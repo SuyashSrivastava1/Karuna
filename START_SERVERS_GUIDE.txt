@@ -1,0 +1,50 @@
+KARUNA PLATFORM - HOW TO START EVERYTHING
+=========================================
+
+Hello! Because Karuna is made of 1 backend and 8 different frontend apps, you cannot just type "npm start" in the main folder. You have to start the backend and the specific frontends you want to view.
+
+Here are the simple, step-by-step instructions:
+
+PART 1: STARTING THE BACKEND
+----------------------------
+The backend handles all the database and AI stuff. It MUST be running for any of the other apps to work.
+
+1. Open a new Terminal (Command Prompt / PowerShell).
+2. Type this to go into the backend folder:
+   cd backend
+3. Type this to start the server:
+   npm start
+4. You should see "🚀 Karuna Backend running on port 5000". Leave this terminal window open!
+
+
+PART 2: STARTING A FRONTEND APP
+-------------------------------
+There are 8 different apps. You don't have to start all 8 at once unless you want to. You only need to start the ones you are currently testing/looking at.
+
+1. Open a SECOND new Terminal window.
+2. Type this to go into the frontend folder:
+   cd frontend
+3. Now, depending on which app you want to view, type "cd" followed by the app name (use quotes!). For example:
+   cd "Sign Up page"
+4. Type this to start up that specific app:
+   npm run dev
+5. You should see it say "Local: http://localhost:5173" (or a different port number).
+6. Hold the Ctrl key and click that link, or copy-paste it into your browser.
+7. Leave this terminal open too!
+
+* Note: If you want to start a different app, open a THIRD terminal and repeat the steps, but pick a different folder inside "frontend" (like cd "Nurse Page").
+
+---
+
+LIST OF ALL 8 APPS:
+- "Sign Up page"         -> The login screen (Port 5173)
+- "Volunteer Join Form"  -> The AI volunteer form (Port 5174)
+- "Nurse Page"           -> The nurse workspace (Port 5175)
+- "Chatbot UI"           -> The emergency AI chat (Port 5176)
+- "Pharmacy Form"        -> Pharmacy registration (Port 5177)
+- "Doctor Onboarding"    -> Doctor registration (Port 5178)
+- "Driver UI"            -> Dispatch queue for drivers (Port 5179)
+- "Pharmacy Dashboard"   -> Order screen for pharmacies (Port 5180)
+- "Doctor Dashboard"     -> Patient screen for doctors (Port 5181)
+
+IMPORTANT: You must log in via the "Sign Up page" first so your computer remembers who you are, then you can use all the other pages!

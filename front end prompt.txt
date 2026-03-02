@@ -1,0 +1,244 @@
+okay hello claude i need you to build my entire frontend according to the frontend design spec provided in my folder the design and as an example i have built the sign in page i am fgoing to provide you with the design for the rest of my pages try to follow it as much as you can this is the description for my prompts tell me if you need any missing information
+i am only rn providing you the detail for a few of my pages do not create any other pages than the pages described and make sure you follow the front end spec exactly inform me and pause for any clahses i need you too build this inside the folder frontend
+page 1
+Premium UI Layout: Chat Bot Interface
+This layout represents a clean, accessible, and responsive conversational UI, designed to get users help quickly without visual clutter.
+
+Global Elements:
+
+Header Bar: A sleek top navigation bar that establishes trust.
+
+Branding & Status: Features a crisp "LOGO" placeholder on the left, next to a subtle, glowing green dot with the text "Online" to indicate active support.
+
+Emergency Contact: On the right side of the header, a highly visible "Emergency no" label paired with a clean telephone icon.
+
+Main Chat Area:
+
+Bot Greeting: A modern, soft-cornered chat bubble aligned to the left side containing the bot's prompt: "How can I help you:".
+
+Primary Action Buttons: Directly below the greeting, presented as stacked, high-contrast action cards (rather than just text) to emphasize quick interaction:
+
+Emergency no.
+
+Start sharing location: This button is visually distinct (e.g., a primary color or subtle glowing shadow) to represent its instant-action nature (as per your note: "A button that instantly sends your location").
+
+Suggested Prompts (Quick Replies): Presented as clean, tapable pill-shaped chips or listed options below the main buttons for easy access:
+
+"Show closest safe site"
+
+"Show emergency no."
+
+"connect me to volunteers."
+
+Input Area:
+
+Text Field: A sleek, minimal, pill-shaped text input bar anchored at the bottom of the screen for manual typing.
+
+Responsive Layout Note: * As per your notes, the design adapts dynamically ("Half screen for PC", "Full screen for laptop"), but the core UI elements remain consistent and centrally focused.
+
+Refined Image Generator Prompt
+Agar aap isko kisi AI image generator ko de rahe ho taaki ekdum professional Dribbble-style design nikle, toh yeh prompt use karo:
+
+Prompt: A premium, modern UI design of an emergency chatbot interface, Dribbble-style aesthetic, highly detailed, 4k resolution. Crisp white background with soft, minimal drop shadows. The top header features a 'LOGO' placeholder, a glowing green 'Online' status indicator, and 'Emergency no' text with a small phone icon. The main chat area features a sleek, soft-cornered bot message bubble reading 'How can I help you:'. Below the bubble are modern, stacked quick-action buttons labeled 'Emergency no.' and a prominently styled, vibrant 'Start sharing location' button indicating an instant action. Below these are clean, tapable suggestion chips reading 'Show closest safe site', 'Show emergency no.', and 'connect me to volunteers.'. At the bottom is a sleek, pill-shaped text input bar. Clean typography, flat vector UI design, high contrast, professional and accessible finish.
+
+
+
+
+
+page 2:
+I have transformed your "Pharmacy Form" sketch into a clean and polished wireframe. All the original features and text have been preserved, and I've described the new look for you in English:
+
+PHARMACY FORM: The title at the top is rendered in a clean, professional font.
+
+NAV BAR: A defined navigation bar across the top with centered, precise text.
+
+Form Structure: The vertical form layout is neat and organized, with crisp digital lines and a clean single sans-serif typeface throughout.
+
+Fields:
+
+Full Name: A label with a clean input box below for text entry.
+
+Phone Number: A label with a clean input box below for numerical entry.
+
+DOB: A clean date input area with clear text entry (e.g., stylized date format), which helps prevent errors and is better visually.
+
+ADDRESS: A clean, larger text input area for multiple lines (e.g., street, city, state, zip).
+
+Button: A large, centered, and rounded primary blue action button at the bottom, marked clearly with white bold text: "REGISTER AND CONTINUE".
+
+Annotations: Just like the previous example, a single clean annotation arrow points from below the button with the label "CTA" for Call-to-Action. All pen marks and messy lines have been removed for a crisp, finished look.
+
+
+page 3:
+Premium UI Layout: Doctor Onboarding Screen
+This layout uses modern design principles like soft shadows, distinct visual hierarchy, and clean iconography to make the form look top-tier.
+
+Global Elements:
+
+Header: A sleek, minimalist "NAV BAR" at the top with a subtle back arrow and a clean title like "Doctor Profile Setup".
+
+Section 1: Verified Credentials (System-Generated / AU)
+To make it look better, we treat these not just as text boxes, but as "Verified" data points to build trust.
+
+Visual Style: These fields are slightly greyed-out with soft rounded corners to indicate they cannot be edited.
+
+Full Name: Displays the name (e.g., "Dr. Jane Doe") with a small, subtle green "verified checkmark" icon inside the box.
+
+Phone Number: Displays the number with a small lock icon or verified badge, ensuring the doctor knows their contact info is securely pulled from the system.
+
+Section 2: Professional Details (User Input)
+These are the active fields the user needs to fill, designed to look inviting and easy to tap.
+
+Visual Style: Bright white input boxes with crisp borders, floating labels, and subtle icons to guide the user's eye.
+
+DOB (Date of Birth): Features a sleek little calendar icon on the right side of the input box.
+
+Blood Group: Designed as a modern dropdown menu with a small downward chevron (v) icon.
+
+Medical Speciality: A clean text field with placeholder text like "e.g., Cardiology, General Practice".
+
+Section 3: The Action Area
+
+Call to Action (CTA): A highly visible, edge-to-edge (or wide pill-shaped) button at the bottom. It reads "Register and continue". To make it pop, it features a vibrant primary color (like medical blue) with a very soft, glowing drop-shadow to make it look clickable and modern.
+
+Refined Image Generator Prompt
+Agar aap isko kisi AI image generator ko de rahe ho taaki ekdum professional Dribbble-style design nikle, toh yeh prompt use karo:
+
+Prompt: A premium, modern mobile UI design for a doctor's onboarding and registration screen. Dribbble-style aesthetic, highly detailed, 4k resolution. Crisp white background with soft, minimal drop shadows and elegant medical-blue accents. The top features a minimalist 'NAV BAR'. Below, a 'Verified Details' section shows 'Full Name' and 'Phone Number' in sleek, slightly greyed-out read-only input boxes, each featuring a small green verified checkmark icon. Next, a clean section features modern, white input fields with soft rounded corners and crisp borders for 'DOB' (with a minimal calendar icon), 'Blood Group' (with a subtle dropdown chevron), and 'Medical Speciality'. At the bottom, a prominent, vibrant blue pill-shaped button that says 'Register and continue' with a soft glowing shadow. Clean typography, flat vector UI design, high contrast, professional finish.
+
+
+
+
+
+
+
+page 4:
+Page Structure & Layout: Driver UI
+This layout represents a clean, straightforward dispatch screen for volunteer drivers, giving them the necessary logistics before they accept a task.
+
+Global Elements:
+
+Navigation: A standard "NAV BAR" anchored at the top of the screen.
+
+Pre-filled Dispatch Details (System-Generated / AU):
+This section provides crucial information automatically filled by the system (AU) so the driver is informed before making a decision.
+
+Location to Pickup: A read-only text field displaying the target address (e.g., "Central Pharmacy, 456 Elm St").
+
+Estimated Time: A read-only text field displaying the calculated ETA to the pickup location (e.g., "15 mins").
+
+Action / Decision Section:
+
+Prompt Text: A clear question asking, "Are you willing to"
+
+Call to Action (CTA): A prominent, primary button labeled "Volunteer" placed immediately after or below the prompt.
+
+Flow Note (Invisible Action): As per your notes, if the user taps the "Volunteer" button ("If yes"), the application automatically takes them to their Maps app with the destination pre-loaded.
+
+Generated Image Prompt
+To get a polished, high-fidelity UI mockup of this dispatch screen, use this prompt:
+
+Prompt: A clean, professional UI wireframe of a mobile application for volunteer drivers. The design features a continuous, unified layout on a crisp white background with subtle blue accents. At the top is a standard 'NAV BAR'. The main content area features a section of system-generated logistics, including read-only text fields clearly labeled 'Location to Pickup' (showing a sample address) and 'Estimated time' (showing '15 mins'). Below this information is a clean text prompt reading 'Are you willing to' followed by a bold, prominent, pill-shaped call-to-action button labeled '
+
+
+
+
+
+
+
+page 5:
+Page Structure & Layout: Pharmacy Dashboard
+This interface is designed for pharmacy staff to efficiently manage incoming medical requirements and coordinate with delivery drivers.
+
+Global Elements:
+
+Navigation: A standard "NAV BAR" anchored at the top of the screen.
+
+View 1: Empty State (No Active Requests)
+
+Layout: A minimalist screen.
+
+Messaging: A centered, clean text prompt stating "No pending orders" when the queue is clear.
+
+View 2: Active State & Order Queue (Scroll Down View)
+
+Smart Sorting: The main queue is explicitly labeled as sorted in "Descending order of urgency" (most critical medications needed first).
+
+Order Cards: A scrollable grid or row of cards. Each card represents a specific request and contains:
+
+Patient ID: Clearly visible at the top of the card.
+
+Requirements per ID: A summarized list of the requested medications and supplies.
+
+Expandable Arrow (v): A drop-down icon to reveal dispatch logistics for that specific order.
+
+View 3: Expanded Dispatch Details (Inside the Order Card)
+When the user clicks the drop-down arrow, the card expands smoothly down the page to reveal:
+
+Section Header: "Driver Dispatch Details"
+
+Live Status: A dynamic status indicator tracking the order's journey (e.g., "Ready for pickup" -> "Ongoing").
+
+Logistics Info: Clean text fields displaying:
+
+Driver Info: Name and contact details of the assigned driver.
+
+ETA: Estimated time of arrival for the pickup or delivery.
+
+System Note (Invisible action): Once the driver confirms delivery, the system automatically archives the card (removing it from this active view).
+
+Generated Image Prompt
+To get a polished, high-fidelity UI mockup of this scrollable screen from your image generator, use this prompt:
+
+Prompt: A clean, professional UI wireframe of a mobile medical pharmacy application. The design features a continuous scrolling layout on a crisp white background with subtle blue accents. At the top is a standard 'NAV BAR'. The main view displays a horizontal row of square 'Order Cards' with a sub-header stating 'Sorted by Descending Urgency'. The first card shows text for 'Patient ID' and 'Requirements'. Below this card is an expanded drop-down section titled 'Driver Dispatch Details'. Inside this expanded section, there is a live status bar showing 'Status: Ready for Pickup', alongside crisp text fields for 'Driver Info' and 'ETA: 10 mins'. Below this active layout, separated by a visual divider, show an alternate 'Empty State' version of the dashboard featuring a completely blank main area with the centered text: 'No pending orders'. Clean typography, minimalistic flat vector UI design, high contrast.
+
+
+
+page 6:
+Page Structure & Layout: Doctor's Dashboard
+This layout represents a comprehensive, single-screen dashboard for a doctor to review and triage patients quickly.
+
+Global Elements:
+
+Navigation: A standard "NAV BAR" anchored at the top.
+
+Header Metric: A prominent display showing the total "PATIENT COUNT".
+
+Main Content: The Patient Queue
+The core of the screen is a list of patients.
+
+Smart Sorting: The list of Patient IDs is clearly labeled as sorted "in descending order of urgency by AI" (most critical at the top).
+
+Expandable Cards (Drop-down): Each Patient ID acts as an accordion or drop-down card. When opened, all specific details for that patient are displayed directly on the screen.
+
+Inside an Expanded Patient Card:
+Every individual patient's block contains the following elements:
+
+Nurse's Diagnosis: A text section summarizing the triage nurse's findings.
+
+Requirements (Prescription area): Structured fields for the doctor to input or review:
+
+Name (of medication)
+
+Dosage
+
+Quantity
+
+Equipment Needed: A dedicated field to request specific medical gear for this patient.
+
+Notes for Nurse: A clear text input box where the doctor can write specific instructions back to the nursing staff.
+
+Status Tag: A visible badge on the card indicating if the request is "Pending" or "Fulfilled".
+
+Call to Action: A primary "SEND" button placed within the patient's card to submit the notes, requirements, and equipment requests.
+
+Generated Image Prompt
+To get a polished, high-fidelity UI mockup of this comprehensive screen from your image generator, use this prompt:
+
+Prompt: A clean, professional UI wireframe of a mobile medical application dashboard designed for doctors. The design features a continuous, unified layout on a crisp white background with subtle blue accents. At the top is a standard 'NAV BAR', followed by a prominent header showing 'PATIENT COUNT: 24'. Below is a vertical list of 'Patient ID' cards, with a small sub-header stating 'Sorted by AI Urgency'. One of the Patient ID cards is expanded (drop-down style) to show all details at once. Inside this expanded card, there are sections for 'Nurse's Diagnosis', structured input fields for 'Requirements' (Name, Dosage, Quantity), a text field for 'Equipment Needed', and a larger text box for 'Notes for Nurse'. The card includes a status badge reading 'Pending' and a bold, pill-shaped 'SEND' button at the bottom right of the expanded section. Clean typography, minimalistic flat vector UI design, high contrast.
+
+
+
+
+
+

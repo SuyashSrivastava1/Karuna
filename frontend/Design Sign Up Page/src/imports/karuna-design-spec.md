@@ -1,0 +1,431 @@
+Here is the formatted documentation based on the provided frontend design specification:
+Karuna — Frontend Design Specification
+Complete screen-by-screen guide for designers and developers. v2 — Updated per design review feedback.
+
+________________________________________🎨 Global Design System
+Colors
+Token	Usage	Color
+--color-primary	Buttons, links, accents	Teal #0d9488
+
+--color-secondary	Secondary buttons, donate	Cyan #0e7490
+
+--color-accent	Highlights, hover, CTAs	Orange #f59d62
+
+--color-danger	Urgent/critical items	Red #EF4444
+
+--color-warning	Moderate items	Amber #F59E0B
+
+--color-success	Stable/fulfilled	Green #22C55E
+
+--color-bg	Page background	Light #f9fafb
+
+--color-card	Card backgrounds	White #ffffff
+
+--color-text	Body text	Dark #111827
+
+--color-muted	Placeholder, labels	
+#6B7280
+
+--color-border	Card borders, inputs	
+#E5E7EB
+
+Typography & Rules
+●	Font: Inter (Google Fonts).
+
+●	Min body size: 16px (outdoor readability).
+
+●	Headings: Bold, --color-text.
+
+●	Labels: All-caps, small, --color-muted.
+
+●	Navigation: All critical actions reachable in ≤ 3 taps.
+
+●	Responsiveness: Mobile-first — design at 375px width first.
+
+●	Accessibility: High contrast for outdoor readability.
+
+●	Safety: Emergency chatbot button always visible in header.
+
+●	Status Indicators: Red/orange/green urgency color coding consistent throughout.
+
+________________________________________📱 Page Index
+Page	Route	Access
+Home / Auth	/	Public
+
+Site Dashboard	/dashboard	Authenticated
+
+Site Join Form	/site/:id/join	Volunteers only
+
+Doctor Site Page	/site/:id/doctor	Doctor
+
+Pharmacy Site Page	/site/:id/pharmacy	Pharmacy
+
+Nurse Page	/site/:id/nurse	NURSE track
+
+Driver Page	/site/:id/driver	DRIVER track
+
+Helper Page	/site/:id/helper	HELPER track
+
+Donate Hub	/donate	Public
+
+Monetary Donation	/donate/monetary	Public
+
+In-Kind Donation	/donate/inkind	Public
+
+Emergency Chatbot	/help (slide-over)	Public
+
+________________________________________🏠 Page 1 — Home / Auth /
+Header (Persistent across ALL pages)
+Element	Type	Details
+Karuna Logo	SVG	Top-left, links to /
+
+[🆘 Help Me]	Button	Top-right, accent orange, always visible, opens /help
+
+[Donate]	Button	Top-right, secondary cyan links to /donate
+
+Role Selector Tabs
+Element	Details
+[Doctor] tab	Toggle button
+
+[Pharmacy] tab	Toggle button
+
+[Volunteer] tab	
+Default selected
+
+On tab click: form fields below update dynamically — no page reload.
+
+Auth Form — Volunteer (Default)
+Step 1: Basic Registration | Field | Type | Required | Placeholder | | :--- | :--- | :--- | :--- | | Full Name | Text input | ✅ | "Your full name"  | | Phone Number | Tel input | ✅ | "+91 XXXXX XXXXX"  | | Date of Birth | Date picker | ✅ | DD/MM/YYYY  | | Blood Group | Dropdown | ✅ | A+, A-, B+, B-, O+, O-, AB+, AB-  | | Profession | Text input | ✅ | "e.g. Nurse, Teacher, Driver"  | | [Register & Continue] | Submit Button | — | Primary teal, full-width  |
+
+⚠️ Vehicle, equipment, fitness, availability fields move to Site Join Flow after user selects a site on the dashboard. User is logged in immediately after submit for now (OTP verification removed).
+
+Auth Form — Doctor
+Field	Type	Required	Placeholder
+Full Name	Text input	✅	"Dr. Full Name"
+
+Phone Number	Tel input	✅	"+91 XXXXX XXXXX"
+
+Date of Birth	Date picker	✅	DD/MM/YYYY
+
+Blood Group	Dropdown	✅	A+, A-, B+, B-, etc.
+
+Medical Specialty	Text input	✅	"e.g. General, Cardiology"
+
+[Register & Continue]	Submit Button	—	Primary teal, full-width
+
+Auth Form — Pharmacy
+Field	Type	Required	Placeholder
+Full Name	Text input	✅	"Pharmacy / Person Name"
+
+Phone Number	Tel input	✅	"+91 XXXXX XXXXX"
+
+Date of Birth	Date picker	✅	DD/MM/YYYY
+
+Pharmacy Address	Textarea	✅	"Full address of the pharmacy"
+
+[Register & Continue]	Submit Button	—	Primary teal, full-width
+
+Blood group removed for pharmacy as per feedback.
+
+API Calls:
+●	POST /api/auth/register → creates Supabase auth user + inserts profile row.
+
+●	Stores access_token from response in localStorage.
+
+●	Redirect → /dashboard.
+
+________________________________________🗺️ Page 2 — Site Dashboard /dashboard
+Header
+●	Add: User name + role badge top-right (Doctor / Pharmacy / Volunteer).
+
+Site Cards Grid
+●	Layout: 3-col desktop → 2-col tablet → 1-col mobile.
+
+●	Sorting: Sorted by urgency (highest first).
+
+Each Site Card: | Element | Details | | :--- | :--- | | Site Name | Bold heading  | | Location | 📍 Location name muted  | | Patient Count | 👥 42 patients  | | Urgency Score | Color bar or badge (red/yellow/green)  | | Personnel Needs | Tags: "Needs: 3 Doctors · 5 Nurses · 2 Drivers"  | | [Volunteer Here] | CTA — full-width, accent orange  |
+
+API Calls:
+●	GET /api/sites → all sites sorted by urgency.
+
+●	GET /api/sites/:id/stats → personnel counts per card.
+
+________________________________________🔗 Page 2b — Site Join Form /site/:id/join
+
+Shown to volunteers only immediately after they click [Volunteer Here] on a site card. This is where the deferred volunteer profile fields are collected.
+
+Field	Type	Required	Placeholder
+Vehicle Availability	Dropdown	✅	None / Car / Bike / Truck / Ambulance
+
+Medical Equipment	Text input	❌	"e.g. First aid kit, oxygen mask"
+
+Medical Fitness	Toggle	✅	"I am medically fit to volunteer"
+
+Availability Duration	Dropdown	✅	"2 hours / Half day / Full day / 2+ days"
+
+Disaster Knowledge	Dropdown	❌	None / Basic / Intermediate / Expert
+
+[Join & Get Role]	Submit Button	—	Primary teal, full-width
+
+After submit → AI assigns track (NURSE / DRIVER / HELPER) → shows result card → redirects to role page.
+
+Track Result Card (shown after join): | Element | Details | | :--- | :--- | | AI-assigned track | Big icon + label "You are a 🏥 Nurse Volunteer"  | | Reason | Brief AI explanation  | | [Go to My Workspace] | Primary button → redirect to /site/:id/nurse etc.  |
+
+API Calls:
+●	POST /api/sites/:id/join with vehicle/medical fields → returns { assignment: { track, reason, suggested_tasks } }.
+
+________________________________________🩺 Page 3 — Doctor Site Page /site/:id/doctor
+Top Bar
+Element	Details
+← Back	Returns to dashboard
+
+Site name heading	Bold
+
+Patient count badge	"32 Patients"
+
+Patient Tag List
+Each patient is a collapsible card.
+
+Collapsed: | Element | Details | | :--- | :--- | | Patient Tag ID | "TAG-001" — bold  | | Triage badge | Urgent (red) / Moderate (yellow) / Stable (green)  | | Nurse diagnosis summary | Small italic text — latest nurse note preview  | | Pending orders count | "⏳ 2 orders pending"  | | [Expand ▼] | Chevron  |
+
+Expanded — Doctor Order Form: | Field | Type | Required | Placeholder | | :--- | :--- | :--- | :--- | | Medicines Needed | Text input | ❌ | "e.g. Paracetamol 500mg"  | | Equipment Needed | Text input | ❌ | "e.g. IV drip, oxygen mask"  | | Quantity | Text input | ✅ | "e.g. 2 strips"  | | Priority | Dropdown | ✅ | Urgent / Medium / Low  | | Notes for Nurse | Textarea | ❌ | "Administer every 4 hours..."  | | [Submit Order] | Button | — | Accent orange  |
+
+Nurse diagnosis display (read-only inside card): | Element | Details | | :--- | :--- | | Diagnosis | "Diagnosed: Dehydration, minor lacerations"  | | Nurse Notes | Nurse's observation notes  | | Vitals (if entered) | HR, BP, temperature  |
+
+API Calls:
+●	GET /api/patients/:siteId → all patient tags.
+
+●	POST /api/orders → create order.
+
+●	GET /api/orders/:siteId?status=pending.
+
+________________________________________💊 Page 4 — Pharmacy Site Page /site/:id/pharmacy
+Top Bar
+Element	Details
+Site selector	Dropdown → GET /api/sites
+
+← Back	Returns to dashboard
+
+Order Queue
+Each order card: | Element | Details | | :--- | :--- | | Patient Tag ID | "TAG-003"  | | Medicine / Equipment | Item name  | | Quantity | Requested amount  | | Priority badge | Urgent (red) / Medium (yellow) / Low (grey)  | | Doctor notes | Italic, muted  |
+
+Status action buttons per order: | Button | Status set | Color | | :--- | :--- | :--- | | [✓ Available] | available | Green  | | [~ Partially] | partially_available | Yellow  | | [✗ Unavailable] | unavailable | Red  |
+
+●	[📦 Mark Ready for Pickup] button — appears when all items are actioned. Sets status → ready_for_pickup.
+
+API Calls:
+●	GET /api/orders/:siteId.
+
+●	PUT /api/orders/:id.
+
+________________________________________🏥 Page 5 — Nurse Page /site/:id/nurse
+Section A — Patient Intake (Register New Patients)
+Nurses tag all new patients entering the site.
+
+Element	Details
+Section heading	"Patient Intake"
+
+[+ Register New Patient]	Button — teal, opens form below
+
+New Patient Form: | Field | Type | Required | Placeholder | | :--- | :--- | :--- | :--- | | Auto-generated Tag ID | Display (read-only) | — | "TAG-007" (auto)  | | Triage Level | Dropdown (with color dots) | ✅ | Urgent / Moderate / Stable  | | Diagnosis | Text input | ✅ | "e.g. Dehydration, fracture"  | | Vitals | Text input | ❌ | "HR: 90, BP: 120/80, Temp: 37°C"  | | Nurse Notes | Textarea | ❌ | "Additional observations..."  | | [Register Patient] | Button | — | Teal, full-width  |
+
+Existing Patient List (read-only, shows nurse's own records): | Element | Details | | :--- | :--- | | Patient ID | "TAG-001"  | | Triage badge | Color-coded  | | Diagnosis | Short text  | | [Edit] | Small button to update triage/notes  |
+
+Section B — Todo List (Nurse Tasks)
+Element	Details
+Add task input	"Add a task for a patient..."
+
+Patient Tag Link	Optional dropdown to link to a patient
+
+[+ Add]	Small teal button
+
+Each todo item: | Element | Details | | :--- | :--- | | Checkbox | Mark complete  | | Task text | Description  | | Patient badge | "TAG-002" if linked  | | Status | Pending / In Progress / Done  | | [🗑 Delete] | Small icon  |
+
+API Calls:
+●	POST /api/patients with { site_id, patient_id (auto), triage_level, diagnosis, vitals, nurse_notes }.
+
+●	GET /api/patients/:siteId → patient list.
+
+●	PUT /api/patients/:id → edit.
+
+●	GET/POST/PUT/DELETE /api/volunteer-todos.
+
+________________________________________🚗 Page 6 — Driver Page /site/:id/driver
+Drivers handle 3 scenarios — shown as tabs or card sections.
+
+Tab 1: 💊 Pharmacy Deliveries
+Fetch orders ready for pickup → GET /api/orders/:siteId/pickup.
+
+Each delivery card: | Element | Details | | :--- | :--- | | Priority badge | 🔴 Urgent (locked, mandatory) / 🟡 Medium / 🟢 Low  | | Item | "Deliver: Paracetamol 500mg x 10"  | | From | Pharmacy name + address  | | To | Site name + ward/zone  | | [Mark Delivered ✓] | Green button  | | 🔒 Lock icon on urgent | Cannot skip — must complete first  |
+
+Tab 2: 🔄 Resource Transfer Between Sites
+Redistribute excess resources from one site to another.
+
+Each resource card: | Element | Details | | :--- | :--- | | Resource | "Excess: 50 blankets at General Hospital"  | | Source site | "From: General Hospital"  | | Destination site | "To: Camp B (critically low)"  | | Priority | Urgent / Normal  | | [Accept Task] | Teal button  | | [Mark Delivered] | Green button (after accepting)  |
+
+Tab 3: 📦 Donation Pickups
+Pick up in-kind donations from donors and deliver to sites. Fetch from GET /api/donations?delivery_status=awaiting_pickup.
+
+Each pickup card: | Element | Details | | :--- | :--- | | Donor name + phone | "Ramesh — 9876543210"  | | Items | "50 blankets, 20 food packets"  | | Pickup address | Full address  | | Deliver to | Nearest / assigned site  | | [Accept Pickup] | Teal button  | | [Mark Delivered] | Green button  |
+
+API Calls:
+●	GET /api/orders/:siteId/pickup.
+
+●	PUT /api/orders/:id → { status: "delivered" }.
+
+●	GET /api/donations?delivery_status=awaiting_pickup.
+
+●	PUT /api/donations/:id → { delivery_status: "delivered" }.
+
+●	GET /api/sites → for inter-site transfers.
+
+________________________________________🤝 Page 7 — Helper Page /site/:id/helper
+Section A — My Tasks (AI-assigned)
+Same todo interface as Nurse. Pre-filled with suggested_tasks from AI assignment.
+
+Element	Details
+Assigned lead	"📍 Report to: Nurse Sita · Zone B, Tent 3"
+
+Todo list	Checkbox tasks, status badges
+
+[+ Add Task]	Self-add tasks
+
+Section B — 💡 Suggest a Task
+Field	Type	Required	Placeholder
+Task title	Text input	✅	"e.g. More drinking water needed at Gate 2"
+
+Description	Textarea	❌	"Explain the suggestion in detail..."
+
+[Submit Suggestion]	Button	—	Teal
+
+Section C — 🚩 Raise a Flag (Complaint / Issue)
+Field	Type	Required	Placeholder
+Issue Type	Dropdown	✅	Workspace / Fellow Volunteer / Lead / Resources / Other
+
+Description	Textarea	✅	"Describe the issue clearly..."
+
+Severity	Radio	✅	Low / Medium / Critical
+
+[Submit Flag 🚩]	Button	—	Red (danger), full-width
+
+API Calls:
+●	GET/POST/PUT/DELETE /api/volunteer-todos → task management.
+
+●	POST /api/flags → submit suggestion or complaint.
+
+________________________________________💝 Page 8 — Donation Hub /donate
+Two large option cards: | Card | Icon | Label | Route | | :--- | :--- | :--- | :--- | | Monetary Donation | 💰 | "Donate Money" | /donate/monetary  | | Goods Donation | 📦 | "Donate Supplies" | /donate/inkind  |
+
+________________________________________💰 Page 9 — Monetary Donation /donate/monetary
+Field	Type	Required	Placeholder
+Donor Name	Text input	❌	"Anonymous or your name"
+
+Email	Email input	❌	"For receipt"
+
+Phone	Tel input	❌	"For SMS receipt"
+
+Amount	Number input	✅	"Enter amount"
+
+Preset amounts	Button chips	—	₹100 / ₹500 / ₹1000 / ₹5000
+
+[Proceed to Pay]	Button	—	Secondary cyan, full-width
+
+API Calls:
+●	POST /api/donations { type:"monetary", amount, donor_name, email, phone }.
+
+________________________________________📦 Page 10 — In-Kind Donation /donate/inkind
+Field	Type	Required	Placeholder
+Donor Name	Text input	❌	"Your name"
+
+Phone	Tel input	❌	"For coordination"
+
+Items Description	Textarea	✅	"e.g. 50 blankets, 20 food packets"
+
+Delivery Choice	Toggle	✅	See below
+
+Delivery Toggle: | Option | Label | | :--- | :--- | | 🚗 I'll deliver myself | Shows site addresses to choose from  | | 📍 Arrange pickup | Shows address input for driver  |
+
+●	If Self-Delivery: Show site cards with address → "Deliver here" button.
+
+●	If Arrange Pickup: Shows Pickup Address (Textarea, Required) and info text "A driver volunteer will contact you".
+
+API Calls:
+●	POST /api/donations { type:"inkind", items, self_delivery, delivery_address }.
+
+________________________________________🆘 Page 11 — Emergency Chatbot /help
+Slide-over panel from [Help Me] button. Always accessible.
+
+Header
+Element	Details
+Title	"🆘 Karuna Emergency Assistant"
+
+Emergency numbers	Pinned top bar: 📞 112 · 108 · 1078
+
+[Close ✕]	Top right
+
+Location Bar (NEW — shown immediately on open)
+Element	Details
+[📍 Share My Location]	Prominent button — teal, top of chat
+
+Status	"Locating nearest safe zone..." → "Nearest: Camp B, 2.3km away"
+
+[Connect with Volunteer]	Appears after location is shared — shows volunteer phone
+
+Clicking Share My Location → uses browser navigator.geolocation → sends { lat, lng } to chatbot API → backend finds nearest site → returns site name + volunteer contact.
+
+Suggestion chips (shown before first message)
+●	"I am stuck and need help"
+
+●	"I need medical assistance"
+
+●	"Where is the nearest safe zone?"
+
+●	"I want to volunteer"
+
+Chat Bubbles
+Element	Details
+User messages	Right-aligned, accent orange background
+
+AI responses	Left-aligned, white card
+
+Typing indicator	Animated 3-dot loader
+
+Input
+Element	Details
+Message textarea	"Describe your situation..."
+
+[Send ➤]	Icon button, accent orange, or Enter key
+
+API Calls:
+●	POST /api/chatbot/chat { message, history: [...], location: { lat, lng } }.
+
+●	Response includes nearest_site, volunteer_contact, emergency_numbers.
+
+________________________________________🔑 Shared Auth Logic
+Event	Action
+After register	Store access_token in localStorage
+
+Every API request	Header: Authorization: Bearer <token>
+
+App load	
+GET /api/auth/me → get role, track, current_site_id
+
+After join site	Redirect based on assigned_track
+
+Token expired	Clear localStorage → redirect to /
+
+________________________________________🔔 Global UI States
+State	UI
+Offline	Top banner: "📡 You are offline. Showing cached data."
+
+Loading	Skeleton cards (not spinners)
+
+Empty	Illustration + "No sites active right now"
+
+API error	Toast — bottom of screen, red
+
+Success	Toast — bottom of screen, green
+
+Urgent override	Full-screen red banner for critical site alerts
+
+________________________________________Would you like me to generate any specific component code (like the React/Tailwind boilerplate for the Dashboard or Auth forms) based on this documentation?

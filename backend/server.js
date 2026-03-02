@@ -9,8 +9,29 @@ const PORT = process.env.PORT || 5000;
 
 // --------------- Middleware ---------------
 
-// CORS
-app.use(cors());
+// CORS — allow all Vite dev-server ports + local origins
+const ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://localhost:5176',
+    'http://localhost:5177',
+    'http://localhost:5178',
+    'http://localhost:5179',
+    'http://localhost:5180',
+    'http://localhost:5181',
+];
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error(`CORS blocked: ${origin}`));
+        }
+    },
+    credentials: true,
+}));
 
 // Body parser
 app.use(express.json({ limit: '10mb' }));
