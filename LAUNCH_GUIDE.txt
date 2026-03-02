@@ -1,0 +1,124 @@
+KARUNA PLATFORM — LAUNCH GUIDE (Plain English, Step-by-Step)
+=============================================================
+Last updated: 3 March 2026
+
+=======================================================================
+BEFORE YOU START — ONE-TIME SUPABASE SETUP (Needed for OTP emails!)
+=======================================================================
+
+The OTP system sends emails through Supabase. You must enable it once:
+
+1. Go to: https://supabase.com/dashboard/project/xarmwpavmvvhpbpbjwmk/auth/providers
+2. Under "Email", make sure it is toggled ON.
+3. Click: https://supabase.com/dashboard/project/xarmwpavmvvhpbpbjwmk/auth/configuration
+4. Under "Email OTP Expiry" — set it to 3600 (1 hour) so it doesn't expire too fast.
+5. Click Save.
+
+That's it! Now the login will actually email OTPs.
+
+=======================================================================
+HOW TO START EVERYTHING (The Run Commands)
+=======================================================================
+
+Open 10 SEPARATE terminal windows and run 1 command in each:
+
+WINDOW 1 — Backend (MUST start first):
+   cd C:\Users\Anushka\OneDrive\Desktop\karuna-backend\backend
+   npm start
+
+WINDOW 2 — Sign Up / Login Page:
+   cd "C:\Users\Anushka\OneDrive\Desktop\karuna-backend\frontend\Design Sign Up Page"
+   npm run dev -- --port 5173
+
+WINDOW 3 — Volunteer Join Form:
+   cd "C:\Users\Anushka\OneDrive\Desktop\karuna-backend\frontend\Volunteer Join Form"
+   npm run dev -- --port 5174
+
+WINDOW 4 — Nurse Page:
+   cd "C:\Users\Anushka\OneDrive\Desktop\karuna-backend\frontend\Nurse Page"
+   npm run dev -- --port 5175
+
+WINDOW 5 — Chatbot UI (Emergency Help):
+   cd "C:\Users\Anushka\OneDrive\Desktop\karuna-backend\frontend\Chatbot UI"
+   npm run dev -- --port 5176
+
+WINDOW 6 — Pharmacy Form (Registration):
+   cd "C:\Users\Anushka\OneDrive\Desktop\karuna-backend\frontend\Pharmacy Form"
+   npm run dev -- --port 5177
+
+WINDOW 7 — Doctor Onboarding:
+   cd "C:\Users\Anushka\OneDrive\Desktop\karuna-backend\frontend\Doctor Onboarding"
+   npm run dev -- --port 5178
+
+WINDOW 8 — Driver UI:
+   cd "C:\Users\Anushka\OneDrive\Desktop\karuna-backend\frontend\Driver UI"
+   npm run dev -- --port 5179
+
+WINDOW 9 — Pharmacy Dashboard:
+   cd "C:\Users\Anushka\OneDrive\Desktop\karuna-backend\frontend\Pharmacy Dashboard"
+   npm run dev -- --port 5180
+
+WINDOW 10 — Doctor Dashboard:
+   cd "C:\Users\Anushka\OneDrive\Desktop\karuna-backend\frontend\Doctor Dashboard"
+   npm run dev -- --port 5181
+
+WINDOW 11 — Main App (Central Login Hub):
+   cd "C:\Users\Anushka\OneDrive\Desktop\karuna-backend\frontend\karuna-app"
+   npm run dev -- --port 5182
+
+
+=======================================================================
+THE USER JOURNEY — How It Works Start To Finish
+=======================================================================
+
+--- FLOW 1: Volunteer ---
+1. Open http://localhost:5182  (or 5173)
+2. Click "Sign Up", pick role "Volunteer", fill name + email + phone
+3. Click "Create Account & Send OTP"
+4. Check your email for a 6-digit code
+5. Enter the code and you will be logged in
+6. Go to http://localhost:5174 — fill the Volunteer Join Form
+7. Click Submit — AI assigns you a role (Nurse / Driver / Helper)
+8. If you got NURSE → use http://localhost:5175
+   If you got DRIVER → use http://localhost:5179
+   If you got HELPER → ask the site coordinator
+
+--- FLOW 2: Doctor ---
+1. Open http://localhost:5173
+2. Click "Sign Up", pick role "Doctor"
+3. Fill name, email, phone → click "Create Account & Send OTP"
+4. Enter OTP from email
+5. Go to http://localhost:5178 — fill in specialty, DOB, blood group
+6. Click "Save Profile & Continue" → goes to http://localhost:5181
+7. On the Doctor Dashboard: see patients and send prescription orders
+
+--- FLOW 3: Pharmacy ---
+1. Open http://localhost:5177
+2. Fill name, email, phone, address
+3. Click "REGISTER AND CONTINUE" → you will be registered + get OTP
+4. Enter OTP → logged in and redirected to http://localhost:5180
+5. On Pharmacy Dashboard: see incoming medication orders, mark as Delivered
+
+--- FLOW 4: Emergency Help (No Login Needed) ---
+1. Open http://localhost:5176 OR http://localhost:5182 and click "Help"
+2. Talk to the AI — it knows your location and will find the nearest relief site
+
+
+=======================================================================
+TROUBLESHOOTING
+=======================================================================
+
+Q: "Failed to fetch" error?
+A: Make sure Window 1 (backend) is running. Visit http://localhost:5000/api/health
+   in your browser — you should see {"status":"healthy"}
+
+Q: I am not getting the OTP email?
+A: Check the Supabase email settings (see top of this document).
+   Also check your spam/junk folder.
+
+Q: Backend says "port already in use"?
+A: The backend is already running! You do not need to start it again.
+   This is normal.
+
+Q: I forgot which port is which?
+A: See the list of 11 windows above.

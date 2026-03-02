@@ -27,7 +27,7 @@ const C = {
 interface Order {
     id: string;
     patientId: string;
-    urgency: "critical" | "high" | "moderate";
+    urgency: "urgent" | "moderate" | "stable";
     requirements: string[];
     driverName: string;
     driverPhone: string;
@@ -38,19 +38,19 @@ interface Order {
 
 const INITIAL_ORDERS: Order[] = [
     {
-        id: "o1", patientId: "TAG-001", urgency: "critical",
+        id: "o1", patientId: "TAG-001", urgency: "urgent",
         requirements: ["Insulin x2", "Saline 500ml x3", "Paracetamol x10"],
         driverName: "Rajesh Kumar", driverPhone: "+91 99887 76655", eta: "8 mins",
         status: "Ready for Pickup", archived: false,
     },
     {
-        id: "o2", patientId: "TAG-003", urgency: "high",
+        id: "o2", patientId: "TAG-003", urgency: "moderate",
         requirements: ["Bandages x5", "Antiseptic 500ml", "Amoxicillin 500mg x20"],
         driverName: "Suresh Patel", driverPhone: "+91 98123 45678", eta: "15 mins",
         status: "Ongoing", archived: false,
     },
     {
-        id: "o3", patientId: "TAG-007", urgency: "moderate",
+        id: "o3", patientId: "TAG-007", urgency: "stable",
         requirements: ["ORS Sachets x10", "Vitamin C x30"],
         driverName: "Awaiting assignment", driverPhone: "—", eta: "—",
         status: "Pending", archived: false,
@@ -58,10 +58,10 @@ const INITIAL_ORDERS: Order[] = [
 ];
 
 const urgencyConfig = (u: Order["urgency"]) => ({
-    critical: { color: C.danger, dot: "🔴", label: "Critical" },
-    high: { color: C.warning, dot: "🟡", label: "High" },
-    moderate: { color: C.success, dot: "🟢", label: "Moderate" },
-}[u]);
+    urgent: { color: C.danger, dot: "🔴", label: "Urgent" },
+    moderate: { color: C.warning, dot: "🟡", label: "Moderate" },
+    stable: { color: C.success, dot: "🟢", label: "Stable" },
+}[u || "stable"]);
 
 const statusColor = (s: Order["status"]) => ({
     "Pending": { bg: "#f3f4f6", text: C.muted },
@@ -84,7 +84,7 @@ export function PharmacyDashboardPage() {
                     setOrders(data.map((o: Record<string, unknown>) => ({
                         id: o.id as string,
                         patientId: (o.patient_tag_id || o.patientId) as string,
-                        urgency: (o.urgency || "moderate") as Order["urgency"],
+                        urgency: (o.urgency?.toString().toLowerCase() || "moderate") as Order["urgency"],
                         requirements: Array.isArray(o.items)
                             ? (o.items as { name: string; quantity: string }[]).map(i => `${i.name} x${i.quantity}`)
                             : [],
@@ -118,12 +118,12 @@ export function PharmacyDashboardPage() {
             {/* Nav */}
             <nav style={{ backgroundColor: C.card, borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50 }}>
                 <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <a href="http://localhost:5182" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+                    <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
                         <img src="/logo.png" alt="Karuna" style={{ height: 32, width: "auto", borderRadius: 6 }} />
                     </a>
                     <div style={{ display: "flex", gap: 8 }}>
-                        <button style={{ backgroundColor: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>🆘 Help Me</button>
-                        <button style={{ backgroundColor: C.secondary, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Donate</button>
+                        <a href="tel:112" style={{ textDecoration: "none", backgroundColor: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>🆘 Help Me</a>
+                        <button onClick={() => window.location.href = '/donate'} style={{ backgroundColor: C.secondary, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Donate</button>
                     </div>
                 </div>
             </nav>
@@ -161,7 +161,7 @@ export function PharmacyDashboardPage() {
                     /* ORDER CARDS */
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                         {activeOrders
-                            .sort((a, b) => ({ critical: 0, high: 1, moderate: 2 }[a.urgency] - { critical: 0, high: 1, moderate: 2 }[b.urgency]))
+                            .sort((a, b) => ({ urgent: 0, moderate: 1, stable: 2 }[a.urgency] ?? 99) - ({ urgent: 0, moderate: 1, stable: 2 }[b.urgency] ?? 99))
                             .map(order => {
                                 const uc = urgencyConfig(order.urgency);
                                 const sc = statusColor(order.status);

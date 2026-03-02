@@ -1,7 +1,7 @@
 KARUNA PLATFORM - HOW TO START EVERYTHING
 =========================================
 
-Hello! Because Karuna is made of 1 backend and 8 different frontend apps, you cannot just type "npm start" in the main folder. You have to start the backend and the specific frontends you want to view.
+Hello! Because Karuna is made of 1 backend and 9 different frontend apps, you cannot just type "npm start" in the main folder. You have to start the backend and the specific frontends you want to view.
 
 Here are the simple, step-by-step instructions:
 
@@ -19,7 +19,7 @@ The backend handles all the database and AI stuff. It MUST be running for any of
 
 PART 2: STARTING A FRONTEND APP
 -------------------------------
-There are 8 different apps. You don't have to start all 8 at once unless you want to. You only need to start the ones you are currently testing/looking at.
+There are 9 different apps. You don't have to start all 9 at once unless you want to. You only need to start the ones you are currently testing/looking at.
 
 1. Open a SECOND new Terminal window.
 2. Type this to go into the frontend folder:
@@ -36,7 +36,7 @@ There are 8 different apps. You don't have to start all 8 at once unless you wan
 
 ---
 
-LIST OF ALL 8 APPS:
+LIST OF ALL 9 APPS:
 - "Sign Up page"         -> The login screen (Port 5173)
 - "Volunteer Join Form"  -> The AI volunteer form (Port 5174)
 - "Nurse Page"           -> The nurse workspace (Port 5175)
@@ -46,5 +46,6 @@ LIST OF ALL 8 APPS:
 - "Driver UI"            -> Dispatch queue for drivers (Port 5179)
 - "Pharmacy Dashboard"   -> Order screen for pharmacies (Port 5180)
 - "Doctor Dashboard"     -> Patient screen for doctors (Port 5181)
+- "karuna-app"           -> Main web application (Port 5182)
 
 IMPORTANT: You must log in via the "Sign Up page" first so your computer remembers who you are, then you can use all the other pages!

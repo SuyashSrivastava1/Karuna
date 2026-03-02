@@ -69,7 +69,7 @@ export function DoctorOnboardingPage() {
             {/* Nav */}
             <nav style={{ backgroundColor: C.card, borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50 }}>
                 <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <a href="http://localhost:5182" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+                    <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
                         <img src="/logo.png" alt="Karuna" style={{ height: 32, width: "auto", borderRadius: 6 }} />
                     </a>
                     <div>

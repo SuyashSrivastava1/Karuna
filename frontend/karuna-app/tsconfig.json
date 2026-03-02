@@ -18,15 +18,9 @@
         "strict": true,
         "noUnusedLocals": false,
         "noUnusedParameters": false,
-        "noFallthroughCasesInSwitch": true,
-        "paths": {
-            "@pages/*": [
-                "../*/src/app/components/*"
-            ]
-        }
+        "noFallthroughCasesInSwitch": true
     },
     "include": [
-        "src",
-        "../*/src"
+        "src"
     ]
 }

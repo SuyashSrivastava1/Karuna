@@ -21,6 +21,7 @@ const ALLOWED_ORIGINS = [
     'http://localhost:5179',
     'http://localhost:5180',
     'http://localhost:5181',
+    'http://localhost:5182',
 ];
 app.use(cors({
     origin: (origin, callback) => {
@@ -60,6 +61,7 @@ app.use('/api/chatbot', require('./routes/chatbotRoutes'));
 app.use('/api/donations', require('./routes/donationRoutes'));
 app.use('/api/patients', require('./routes/patientRoutes'));
 app.use('/api/flags', require('./routes/flagRoutes'));
+app.use('/api/driver', require('./routes/driverRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {

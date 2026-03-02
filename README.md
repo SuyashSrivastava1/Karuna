@@ -2,7 +2,7 @@
 
 Karuna is a comprehensive disaster relief coordination platform designed to organize post-disaster logistics, routing volunteers, medical supplies, and donations using AI.
 
-This repository holds the **Node.js + Express backend** (powered by Supabase & Gemini AI) and **8 distinct frontend Vite/React applications** tailored for specific roles on the ground during a crisis.
+This repository holds the **Node.js + Express backend** (powered by Supabase & Gemini AI) and **9 distinct frontend Vite/React applications** tailored for specific roles on the ground during a crisis.
 
 ## Features
 - **Role-Based Authentication**: Secure login for Doctors, Pharmacies, and Volunteers via Supabase Auth (Email OTP).
@@ -46,7 +46,7 @@ npm start
 ---
 
 ### 2. Frontend Applications
-To keep the bundle sizes lightweight for users on slow network connections in disaster zones, the frontend is split into 8 specific micro-apps. They all communicate with the central backend on port 5000.
+To keep the bundle sizes lightweight for users on slow network connections in disaster zones, the frontend is split into 9 specific micro-apps. They all communicate with the central backend on port 5000.
 
 To run any app, navigate to its specific folder inside `frontend/`, install dependencies, and start the Vite dev server:
 ```bash
@@ -68,6 +68,7 @@ npm run dev
 | **Driver UI** | `5179` | Dispatch queue for picking up and delivering relief supplies. |
 | **Pharmacy Dashboard** | `5180` | Order fulfillment queue for medical and equipment supplies. |
 | **Doctor Dashboard** | `5181` | Patient overview and digital prescription issuance. |
+| **Karuna App Main** | `5182` | Core organizational dashboard and application wrapper. |
 
 ### Note on Authentication
 Log in via the **Sign Up page (`localhost:5173`)** first. The authentication JWT is shared across all apps via `localStorage` (key: `karuna_token`), so you do not need to repeatedly log in when switching between the different dashboards. All apps have graceful fallback UI if the auth token is missing or the backend is offline.

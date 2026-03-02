@@ -1,233 +1,139 @@
-import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 
-// Lazy-load pages from sibling project folders
-const DoctorDashboardPage = lazy(() =>
-    import('../../Doctor Dashboard/src/app/components/DoctorDashboardPage').then(m => ({ default: m.DoctorDashboardPage }))
-);
-const DoctorOnboardingPage = lazy(() =>
-    import('../../Doctor Onboarding/src/app/components/DoctorOnboardingPage').then(m => ({ default: m.DoctorOnboardingPage }))
-);
-const PharmacyDashboardPage = lazy(() =>
-    import('../../Pharmacy Dashboard/src/app/components/PharmacyDashboardPage').then(m => ({ default: m.PharmacyDashboardPage }))
-);
-const PharmacyFormPage = lazy(() =>
-    import('../../Pharmacy Form/src/app/components/PharmacyFormPage').then(m => ({ default: m.PharmacyFormPage }))
-);
-const NursePage = lazy(() =>
-    import('../../Nurse Page/src/app/components/NursePage').then(m => ({ default: m.NursePage }))
-);
-const DriverUIPage = lazy(() =>
-    import('../../Driver UI/src/app/components/DriverUIPage').then(m => ({ default: m.DriverUIPage }))
-);
-const ChatbotPage = lazy(() =>
-    import('../../Chatbot UI/src/app/components/ChatbotPage').then(m => ({ default: m.ChatbotPage }))
-);
-const VolunteerJoinPage = lazy(() =>
-    import('../../Volunteer Join Form/src/app/components/VolunteerJoinPage').then(m => ({ default: m.VolunteerJoinPage }))
-);
+// ── Import all the user-designed pages ────────────────────────────────────────
+import { SignupPage } from './components/SignupPage';
+import { VolunteerJoinPage } from './components/VolunteerJoinPage';
+import { NursePage } from './components/NursePage';
+import { ChatbotPage } from './components/ChatbotPage';
+import { PharmacyFormPage } from './components/PharmacyFormPage';
+import { DoctorOnboardingPage } from './components/DoctorOnboardingPage';
+import { DriverUIPage } from './components/DriverUIPage';
+import { PharmacyDashboardPage } from './components/PharmacyDashboardPage';
+import { DoctorDashboardPage } from './components/DoctorDashboardPage';
+import { JoinSitePage } from './components/JoinSitePage';
+import { AdminBypassPage } from './components/AdminBypassPage';
 
-// ── Simple Loading Spinner ──
-const LoadingSpinner = () => (
-    <div style={{
-        display: 'flex', justifyContent: 'center', alignItems: 'center',
-        height: '100vh', background: '#f9fafb'
-    }}>
-        <div style={{
-            width: 40, height: 40, border: '4px solid #e5e7eb',
-            borderTop: '4px solid #0d9488', borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-        }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
-);
+// ── Design Tokens ─────────────────────────────────────────────────────────────
+const C = {
+    primary: '#4F46E5', primaryHover: '#4338CA', secondary: '#6366F1',
+    accent: '#F97316', accentHover: '#ea580c', danger: '#EF4444',
+    success: '#22C55E', bg: '#f9fafb', card: '#ffffff',
+    text: '#111827', muted: '#6B7280', border: '#E5E7EB',
+};
 
-// ── Navigation Header ──
-const Header = () => {
-    const location = useLocation();
-    const isActive = (path: string) => location.pathname.startsWith(path);
-
-    // Get logged in user info from localStorage
+// ── Header ────────────────────────────────────────────────────────────────────
+function Header() {
+    const loc = useLocation();
     const role = localStorage.getItem('karuna_role') || '';
-    const userName = localStorage.getItem('karuna_user_name') || '';
+    const name = localStorage.getItem('karuna_user_name') || '';
     const isLoggedIn = !!localStorage.getItem('karuna_token');
 
-    const handleLogout = () => {
+    const logout = () => {
         localStorage.removeItem('karuna_token');
         localStorage.removeItem('karuna_role');
         localStorage.removeItem('karuna_user_name');
-        localStorage.removeItem('karuna_user_id');
+        localStorage.removeItem('karuna_user_email');
         window.location.href = '/';
     };
 
+    const nav = [
+        { label: '🏠 Home', to: '/' },
+        { label: '🆘 Help', to: '/help' },
+    ];
+
+    // Role-based nav items
+    if (isLoggedIn) {
+        if (role === 'volunteer') {
+            nav.push({ label: '🤝 Volunteer', to: '/volunteer/join' });
+            nav.push({ label: '🏥 Nurse', to: '/nurse' });
+            nav.push({ label: '🚗 Driver', to: '/driver' });
+        }
+        if (role === 'doctor') {
+            nav.push({ label: '🩺 Dashboard', to: '/doctor' });
+            nav.push({ label: '⚙️ Onboarding', to: '/doctor/onboarding' });
+        }
+        if (role === 'pharmacy') {
+            nav.push({ label: '💊 Dashboard', to: '/pharmacy' });
+            nav.push({ label: '📋 Register', to: '/pharmacy/form' });
+        }
+    }
+
     return (
-        <header style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '12px 24px', background: '#fff', borderBottom: '1px solid #e5e7eb',
-            position: 'sticky', top: 0, zIndex: 100
-        }}>
-            {/* Logo */}
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: '#0d9488' }}>🏥 Karuna</span>
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 20px', background: '#fff', borderBottom: `1px solid ${C.border}`, position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', flexWrap: 'wrap', gap: 8 }}>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                <img src="/logo.png" alt="Karuna" style={{ height: 32, width: 'auto', borderRadius: 6 }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             </Link>
 
-            {/* Nav Links */}
-            <nav style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                {isLoggedIn && (
-                    <>
-                        {role === 'doctor' && (
-                            <NavLink to="/doctor" active={isActive('/doctor')}>Doctor Dashboard</NavLink>
-                        )}
-                        {role === 'pharmacy' && (
-                            <NavLink to="/pharmacy" active={isActive('/pharmacy')}>Pharmacy Dashboard</NavLink>
-                        )}
-                        {role === 'volunteer' && (
-                            <>
-                                <NavLink to="/volunteer/join" active={isActive('/volunteer/join')}>Join Site</NavLink>
-                                <NavLink to="/nurse" active={isActive('/nurse')}>Nurse</NavLink>
-                                <NavLink to="/driver" active={isActive('/driver')}>Driver</NavLink>
-                            </>
-                        )}
-                    </>
-                )}
-
-                {/* Always visible */}
-                <Link to="/help" style={{
-                    padding: '8px 16px', borderRadius: 8, background: '#f59d62',
-                    color: '#fff', fontWeight: 600, textDecoration: 'none', fontSize: 14
-                }}>
-                    🆘 Help Me
-                </Link>
+            <nav style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+                {nav.map(n => (
+                    <Link key={n.to} to={n.to} style={{
+                        padding: '6px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                        textDecoration: 'none', transition: 'all 0.15s',
+                        background: loc.pathname === n.to ? `${C.primary}15` : 'transparent',
+                        color: loc.pathname === n.to ? C.primary : C.muted,
+                    }}>{n.label}</Link>
+                ))}
 
                 {isLoggedIn ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 13, color: '#6B7280' }}>
-                            {userName} ({role})
-                        </span>
-                        <button onClick={handleLogout} style={{
-                            padding: '6px 12px', borderRadius: 6, border: '1px solid #e5e7eb',
-                            background: '#fff', cursor: 'pointer', fontSize: 13, color: '#EF4444'
-                        }}>
-                            Logout
-                        </button>
-                    </div>
+                    <button onClick={logout} style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, fontSize: 12, fontWeight: 600, cursor: 'pointer', marginLeft: 8 }}>
+                        {name ? `${name} — Logout` : 'Logout'}
+                    </button>
                 ) : (
-                    <NavLink to="/" active={isActive('/')}>Login</NavLink>
+                    <Link to="/" style={{ padding: '6px 14px', borderRadius: 8, border: `1.5px solid ${C.primary}`, background: 'transparent', color: C.primary, fontSize: 13, fontWeight: 700, textDecoration: 'none', marginLeft: 8 }}>
+                        Login
+                    </Link>
                 )}
             </nav>
         </header>
     );
-};
-
-const NavLink = ({ to, active, children }: { to: string; active: boolean; children: React.ReactNode }) => (
-    <Link to={to} style={{
-        padding: '6px 14px', borderRadius: 6, textDecoration: 'none', fontSize: 14, fontWeight: 500,
-        background: active ? '#0d948815' : 'transparent',
-        color: active ? '#0d9488' : '#374151',
-        border: active ? '1px solid #0d9488' : '1px solid transparent'
-    }}>
-        {children}
-    </Link>
-);
-
-// ── Temporary Home / Signup Page ──
-// (The main signup page uses Tailwind/MUI which needs its full project context. 
-//  This provides a simple link hub until the signup is integrated.)
-const HomePage = () => {
-    const isLoggedIn = !!localStorage.getItem('karuna_token');
-    const role = localStorage.getItem('karuna_role') || '';
-
-    if (isLoggedIn) {
-        if (role === 'doctor') return <Navigate to="/doctor" />;
-        if (role === 'pharmacy') return <Navigate to="/pharmacy" />;
-        if (role === 'volunteer') return <Navigate to="/volunteer/join" />;
-    }
-
-    return (
-        <div style={{
-            maxWidth: 420, margin: '80px auto', padding: 32,
-            background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.06)'
-        }}>
-            <h1 style={{ fontSize: 28, fontWeight: 700, color: '#0d9488', marginBottom: 8, textAlign: 'center' }}>
-                Welcome to Karuna
-            </h1>
-            <p style={{ color: '#6B7280', textAlign: 'center', marginBottom: 24 }}>
-                Disaster Relief Coordination Platform
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <RoleLink to="/doctor/onboarding" emoji="🩺" label="I am a Doctor" />
-                <RoleLink to="/pharmacy/form" emoji="💊" label="I am a Pharmacy" />
-                <RoleLink to="/volunteer/join" emoji="🤝" label="I want to Volunteer" />
-            </div>
-
-            <div style={{ margin: '24px 0', borderTop: '1px solid #e5e7eb' }} />
-
-            <Link to="/help" style={{
-                display: 'block', padding: '14px', borderRadius: 10,
-                background: '#f59d62', color: '#fff', fontWeight: 600,
-                textDecoration: 'none', textAlign: 'center', fontSize: 16
-            }}>
-                🆘 I Need Emergency Help
-            </Link>
-        </div>
-    );
-};
-
-const RoleLink = ({ to, emoji, label }: { to: string; emoji: string; label: string }) => (
-    <Link to={to} style={{
-        display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px',
-        borderRadius: 10, border: '1px solid #e5e7eb', textDecoration: 'none',
-        color: '#111827', fontWeight: 500, fontSize: 15,
-        transition: 'all 0.2s'
-    }}
-        onMouseOver={e => { e.currentTarget.style.borderColor = '#0d9488'; e.currentTarget.style.background = '#f0fdfa'; }}
-        onMouseOut={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff'; }}
-    >
-        <span style={{ fontSize: 24 }}>{emoji}</span>
-        {label}
-    </Link>
-);
+}
 
 // ── 404 ──
 const NotFound = () => (
     <div style={{ textAlign: 'center', padding: 80 }}>
-        <h1 style={{ fontSize: 48, color: '#0d9488' }}>404</h1>
-        <p style={{ color: '#6B7280', marginBottom: 24 }}>Page not found</p>
-        <Link to="/" style={{ color: '#0d9488', fontWeight: 600 }}>← Back to Home</Link>
+        <h1 style={{ fontSize: 48, color: C.primary }}>404</h1>
+        <p style={{ color: C.muted, marginBottom: 24 }}>Page not found</p>
+        <Link to="/" style={{ color: C.primary, fontWeight: 600 }}>← Back to Home</Link>
     </div>
 );
 
-// ── App ──
+// ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
     return (
         <>
+            <style>{`* { box-sizing: border-box; margin: 0; padding: 0; } body { font-family: 'Inter', -apple-system, sans-serif; background: ${C.bg}; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
             <Header />
-            <main style={{ minHeight: 'calc(100vh - 60px)' }}>
-                <Suspense fallback={<LoadingSpinner />}>
-                    <Routes>
-                        <Route path="/" element={<HomePage />} />
+            <main>
+                <Routes>
+                    {/* Home — the user's Sign Up / Login page */}
+                    <Route path="/" element={<SignupPage />} />
 
-                        {/* Doctor */}
-                        <Route path="/doctor" element={<DoctorDashboardPage />} />
-                        <Route path="/doctor/onboarding" element={<DoctorOnboardingPage />} />
+                    {/* Join Site */}
+                    <Route path="/join" element={<JoinSitePage />} />
 
-                        {/* Pharmacy */}
-                        <Route path="/pharmacy" element={<PharmacyDashboardPage />} />
-                        <Route path="/pharmacy/form" element={<PharmacyFormPage />} />
+                    {/* Emergency Help — the user's Chatbot UI */}
+                    <Route path="/help" element={<ChatbotPage />} />
 
-                        {/* Volunteer roles */}
-                        <Route path="/volunteer/join" element={<VolunteerJoinPage />} />
-                        <Route path="/nurse" element={<NursePage />} />
-                        <Route path="/driver" element={<DriverUIPage />} />
+                    {/* Admin Bypass */}
+                    <Route path="/admin-bypass-login" element={<AdminBypassPage />} />
 
-                        {/* Emergency chatbot */}
-                        <Route path="/help" element={<ChatbotPage />} />
+                    {/* Volunteer flow */}
+                    <Route path="/volunteer/join" element={<VolunteerJoinPage />} />
+                    <Route path="/nurse" element={<NursePage />} />
+                    <Route path="/driver" element={<DriverUIPage />} />
 
-                        {/* Catch-all */}
-                        <Route path="*" element={<NotFound />} />
-                    </Routes>
-                </Suspense>
+                    {/* Pharmacy flow */}
+                    <Route path="/pharmacy/form" element={<PharmacyFormPage />} />
+                    <Route path="/pharmacy" element={<PharmacyDashboardPage />} />
+
+                    {/* Doctor flow */}
+                    <Route path="/doctor/onboarding" element={<DoctorOnboardingPage />} />
+                    <Route path="/doctor" element={<DoctorDashboardPage />} />
+
+                    {/* 404 */}
+                    <Route path="*" element={<NotFound />} />
+                </Routes>
             </main>
         </>
     );

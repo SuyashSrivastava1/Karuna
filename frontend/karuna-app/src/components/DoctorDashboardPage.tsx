@@ -36,7 +36,7 @@ interface Prescription { name: string; dosage: string; quantity: string; }
 interface Patient {
     id: string;
     tagId: string;
-    urgency: "critical" | "high" | "moderate" | "stable";
+    urgency: "urgent" | "moderate" | "stable";
     nursesDiagnosis: string;
     vitals: string;
     prescription: Prescription;
@@ -46,16 +46,15 @@ interface Patient {
 }
 
 const urgencyConfig = (u: Patient["urgency"]) => ({
-    critical: { color: C.danger, dot: "🔴", label: "Critical" },
-    high: { color: C.warning, dot: "🟡", label: "High" },
-    moderate: { color: "#8B5CF6", dot: "🟣", label: "Moderate" },
+    urgent: { color: C.danger, dot: "🔴", label: "Urgent" },
+    moderate: { color: C.warning, dot: "🟡", label: "Moderate" },
     stable: { color: C.success, dot: "🟢", label: "Stable" },
-}[u]);
+}[u || "stable"]);
 
 const INITIAL_PATIENTS: Patient[] = [
-    { id: "p1", tagId: "TAG-001", urgency: "critical", nursesDiagnosis: "Severe dehydration, high fever (39.8°C), unconscious episodes. Needs IV drip immediately.", vitals: "HR: 115, BP: 85/55, Temp: 39.8°C", prescription: { name: "", dosage: "", quantity: "" }, equipmentNeeded: "", notesForNurse: "", status: "Pending" },
-    { id: "p2", tagId: "TAG-003", urgency: "high", nursesDiagnosis: "Minor fracture in left arm. Stable but in pain. Splint applied.", vitals: "HR: 88, BP: 115/75, Temp: 37.2°C", prescription: { name: "", dosage: "", quantity: "" }, equipmentNeeded: "", notesForNurse: "", status: "Pending" },
-    { id: "p3", tagId: "TAG-007", urgency: "moderate", nursesDiagnosis: "Mild dehydration and fatigue. Alert and responsive.", vitals: "HR: 78, BP: 120/80, Temp: 37.0°C", prescription: { name: "", dosage: "", quantity: "" }, equipmentNeeded: "", notesForNurse: "", status: "Pending" },
+    { id: "p1", tagId: "TAG-001", urgency: "urgent", nursesDiagnosis: "Severe dehydration, high fever (39.8°C), unconscious episodes. Needs IV drip immediately.", vitals: "HR: 115, BP: 85/55, Temp: 39.8°C", prescription: { name: "", dosage: "", quantity: "" }, equipmentNeeded: "", notesForNurse: "", status: "Pending" },
+    { id: "p2", tagId: "TAG-003", urgency: "moderate", nursesDiagnosis: "Minor fracture in left arm. Stable but in pain. Splint applied.", vitals: "HR: 88, BP: 115/75, Temp: 37.2°C", prescription: { name: "", dosage: "", quantity: "" }, equipmentNeeded: "", notesForNurse: "", status: "Pending" },
+    { id: "p3", tagId: "TAG-007", urgency: "stable", nursesDiagnosis: "Mild dehydration and fatigue. Alert and responsive.", vitals: "HR: 78, BP: 120/80, Temp: 37.0°C", prescription: { name: "", dosage: "", quantity: "" }, equipmentNeeded: "", notesForNurse: "", status: "Pending" },
     { id: "p4", tagId: "TAG-009", urgency: "stable", nursesDiagnosis: "Minor cuts and bruises. No internal issues detected.", vitals: "HR: 72, BP: 118/78, Temp: 36.8°C", prescription: { name: "", dosage: "", quantity: "" }, equipmentNeeded: "", notesForNurse: "", status: "Pending" },
 ];
 
@@ -73,7 +72,7 @@ export function DoctorDashboardPage() {
                     setPatients(data.map((p: Record<string, unknown>) => ({
                         id: p.id as string,
                         tagId: (p.tag_id || p.tagId) as string,
-                        urgency: (p.triage_level || p.urgency || "stable") as Patient["urgency"],
+                        urgency: (p.triage_level?.toString().toLowerCase() || p.urgency?.toString().toLowerCase() || "stable") as Patient["urgency"],
                         nursesDiagnosis: (p.diagnosis || "") as string,
                         vitals: (p.vitals || "") as string,
                         prescription: { name: "", dosage: "", quantity: "" },
@@ -127,12 +126,12 @@ export function DoctorDashboardPage() {
             {/* Nav */}
             <nav style={{ backgroundColor: C.card, borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50 }}>
                 <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <a href="http://localhost:5182" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+                    <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
                         <img src="/logo.png" alt="Karuna" style={{ height: 32, width: "auto", borderRadius: 6 }} />
                     </a>
                     <div style={{ display: "flex", gap: 8 }}>
-                        <button style={{ backgroundColor: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>🆘 Help Me</button>
-                        <button style={{ backgroundColor: C.secondary, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Donate</button>
+                        <a href="tel:112" style={{ textDecoration: "none", backgroundColor: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>🆘 Help Me</a>
+                        <button onClick={() => window.location.href = '/donate'} style={{ backgroundColor: C.secondary, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Donate</button>
                     </div>
                 </div>
             </nav>
@@ -150,23 +149,23 @@ export function DoctorDashboardPage() {
                             <p style={{ fontSize: 12, fontWeight: 600, color: C.muted, margin: "4px 0 0", textTransform: "uppercase", letterSpacing: "0.06em" }}>Patient Count</p>
                         </div>
                         <div style={{ flex: 1, backgroundColor: `${C.danger}0e`, borderRadius: 12, border: `1px solid ${C.danger}33`, padding: "14px 16px", textAlign: "center" }}>
-                            <p style={{ fontSize: 36, fontWeight: 900, color: C.danger, margin: 0, lineHeight: 1 }}>{patients.filter(p => p.urgency === "critical").length}</p>
-                            <p style={{ fontSize: 12, fontWeight: 600, color: C.danger, margin: "4px 0 0", textTransform: "uppercase", letterSpacing: "0.06em" }}>Critical</p>
+                            <p style={{ fontSize: 36, fontWeight: 900, color: C.danger, margin: 0, lineHeight: 1 }}>{patients.filter(p => p.urgency === "urgent").length}</p>
+                            <p style={{ fontSize: 12, fontWeight: 600, color: C.danger, margin: "4px 0 0", textTransform: "uppercase", letterSpacing: "0.06em" }}>Urgent</p>
                         </div>
                         <div style={{ flex: 1, backgroundColor: `${C.success}0e`, borderRadius: 12, border: `1px solid ${C.success}33`, padding: "14px 16px", textAlign: "center" }}>
                             <p style={{ fontSize: 36, fontWeight: 900, color: C.success, margin: 0, lineHeight: 1 }}>{patients.filter(p => p.status === "Fulfilled").length}</p>
                             <p style={{ fontSize: 12, fontWeight: 600, color: C.success, margin: "4px 0 0", textTransform: "uppercase", letterSpacing: "0.06em" }}>Fulfilled</p>
                         </div>
                     </div>
-                    <p style={{ fontSize: 12, color: C.muted, marginTop: 8 }}>Sorted by AI urgency — critical first</p>
+                    <p style={{ fontSize: 12, color: C.muted, marginTop: 8 }}>Sorted by AI urgency — urgent first</p>
                 </div>
 
                 {/* Patient Cards */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {patients
                         .sort((a, b) =>
-                            ({ critical: 0, high: 1, moderate: 2, stable: 3 }[a.urgency]) -
-                            ({ critical: 0, high: 1, moderate: 2, stable: 3 }[b.urgency])
+                            ({ urgent: 0, moderate: 1, stable: 2 }[a.urgency] ?? 99) -
+                            ({ urgent: 0, moderate: 1, stable: 2 }[b.urgency] ?? 99)
                         )
                         .map(p => {
                             const uc = urgencyConfig(p.urgency);

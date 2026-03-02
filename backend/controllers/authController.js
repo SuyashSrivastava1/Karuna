@@ -6,7 +6,9 @@ const registerUser = async (req, res) => {
     const {
         email, password, phone, full_name, role,
         blood_group, date_of_birth, profession,
-        medical_specialty, pharmacy_address
+        medical_specialty, pharmacy_address,
+        doctor_registration_number, pharmacy_registration_number,
+        volunteer_availability
     } = req.body;
 
     // Email is now the primary required identifier
@@ -77,7 +79,10 @@ const registerUser = async (req, res) => {
             date_of_birth: date_of_birth || null,
             blood_group: role !== 'pharmacy' ? (blood_group || null) : null,
             medical_specialty: role === 'doctor' ? (medical_specialty || null) : null,
-            pharmacy_address: role === 'pharmacy' ? (pharmacy_address || null) : null
+            pharmacy_address: role === 'pharmacy' ? (pharmacy_address || null) : null,
+            doctor_registration_number: role === 'doctor' ? (doctor_registration_number || null) : null,
+            pharmacy_registration_number: role === 'pharmacy' ? (pharmacy_registration_number || null) : null,
+            volunteer_availability: role === 'volunteer' ? (volunteer_availability || null) : null
         };
 
         const { error: profileError } = await supabase
@@ -179,6 +184,7 @@ const updateMe = async (req, res) => {
     const allowedFields = [
         'full_name', 'phone', 'email', 'profession', 'blood_group', 'date_of_birth',
         'medical_specialty', 'pharmacy_address',
+        'doctor_registration_number', 'pharmacy_registration_number', 'volunteer_availability',
         'vehicle_availability', 'medical_equipment', 'medical_fitness',
         'availability_duration', 'disaster_knowledge'
     ];

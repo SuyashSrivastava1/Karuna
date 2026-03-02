@@ -1,0 +1,31 @@
+Karuna Application - Launch Instructions
+
+1. Start the Backend Server:
+Open a terminal, navigate to the backend folder (`c:\Users\Anushka\OneDrive\Desktop\karuna-backend\backend`), and start the Node.js server.
+Command:
+cd backend
+npm start
+(or `npm run dev` if you have nodemon installed)
+
+* Ensure your .env file is present with your Supabase and Gemini API keys.
+* The backend will run on http://localhost:5000
+
+2. Start the Frontend Application:
+Open a second terminal, navigate to the frontend folder (`c:\Users\Anushka\OneDrive\Desktop\karuna-backend\frontend\karuna-app`), and start the Vite dev server.
+Command:
+cd frontend/karuna-app
+npm run dev
+
+* The frontend will run natively on your machine.
+* All 9 previously separate HTML/CSS sub-pages have been successfully integrated into this single React application with real API routing.
+
+3. Database Checklist (IMPORTANT):
+Before registering new accounts, please ensure your Supabase `users` table has these exact columns added so that the new sign-up forms work perfectly:
+- doctor_registration_number (text)
+- pharmacy_registration_number (text)
+- volunteer_availability (text)
+
+4. Diagnostic Backdoor:
+If you need to instantly access the system without logging in or verifying an OTP, navigate in your browser directly to:
+http://localhost:5182/admin-bypass-login
+And use the override key: KARUNA_BACKDOOR_2024
