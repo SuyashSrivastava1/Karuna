@@ -33,7 +33,9 @@ export function PharmacyFormPage() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitted(true);
-        setTimeout(() => setSubmitted(false), 3000);
+        setTimeout(() => {
+            window.location.href = "/pharmacy";
+        }, 1500);
     };
 
     return (

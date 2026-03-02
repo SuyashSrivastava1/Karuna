@@ -39,7 +39,9 @@ export function DoctorOnboardingPage() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitted(true);
-        setTimeout(() => setSubmitted(false), 3000);
+        setTimeout(() => {
+            window.location.href = "/doctor";
+        }, 1500);
     };
 
     return (
