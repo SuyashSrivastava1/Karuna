@@ -1,0 +1,442 @@
+--- ResQLink_Backend_Guide_Gemini.docx ---
+
+RESQLINK
+Complete Backend Development Guide
+Step-by-step for absolute beginners  |  Node.js + Express + Supabase + Gemini API
+
+
+What You Will Build
+By following this guide you will have a fully working backend server for ResQLink. It will handle user registration, login, site management, doctor orders, pharmacy fulfillment, volunteer task assignment, donations, and the AI chatbot. Every single file you need to create is shown with its complete code.
+
+
+Part 1 — Understanding the Architecture
+Before writing any code, understand the 3-layer structure of this backend.
+
+
+How a request flows through your server:
+
+
+Part 2 — Setting Up Your Computer
+Do this once before you start. You only need 3 things installed.
+
+Step 1 — Install Node.js
+Node.js is the engine that runs your backend code.
+Go to  https://nodejs.org  and download the LTS version
+Run the installer — click Next on everything
+Open your terminal (Command Prompt on Windows, Terminal on Mac) and verify:
+
+
+Step 2 — Install VS Code
+Go to  https://code.visualstudio.com  and download VS Code
+Install the extension called  ESLint  and  Prettier  inside VS Code
+This is your code editor for the whole project
+
+Step 3 — Create a Supabase Account
+Supabase gives you a free PostgreSQL database and built-in auth. No credit card needed.
+Go to  https://supabase.com  and sign up with GitHub
+Click "New Project", give it the name  resqlink
+Choose a region close to your users (e.g., Singapore for India)
+Set a strong database password — save it somewhere safe
+Wait ~2 minutes for the project to be created
+Go to Settings → API — you will need these two values later:
+
+
+Step 3b — Get Your Free Gemini API Key
+Google gives you a free Gemini API key with a generous free tier — perfect for this project.
+Go to  https://aistudio.google.com/app/apikey  (sign in with your Google account)
+Click the blue "Create API Key" button
+Copy the key — it starts with  AIzaSy...
+Store it safely — you will paste it into your .env file shortly
+
+
+Part 3 — Creating the Project
+Step 4 — Create the Folder Structure
+Open your terminal and run these commands one by one:
+
+
+Now create the folder structure:
+
+
+Your folder should look like this when done:
+
+
+Step 5 — Configure package.json Scripts
+Open package.json and replace the scripts section with this:
+
+
+Now  npm run dev  will auto-restart your server whenever you save a file.
+
+Step 6 — Create the .env File
+The .env file stores your secret keys. Create a file named exactly  .env  in the root folder:
+
+
+
+Part 4 — Setting Up the Database
+You will create all your database tables in Supabase using SQL. Go to your Supabase dashboard → SQL Editor → New Query. Paste and run each block below.
+
+Step 7 — Create the Tables
+7a. Users Table
+
+7b. Sites Table
+
+7c. Patient Tags Table
+
+7d. Orders Table (Doctor Requests to Pharmacy)
+
+7e. Donations Table
+
+7f. OTP Table (for phone verification)
+
+7g. Volunteer Todos Table (Nurse's Patient List)
+
+Part 5 — Connecting Node.js to Supabase
+Step 8 — Create the Supabase Client
+Create the file  config/supabase.js:
+
+
+Part 6 — The Main Server File
+Step 9 — Create server.js
+This is the entry point of your entire backend. Create  server.js  in the root folder:
+
+
+Part 7 — Authentication Middleware
+Middleware is code that runs before your route handlers. The auth middleware checks that a user is logged in before allowing access to protected routes.
+
+Step 10 — Create middleware/auth.js
+
+Part 8 — Authentication (Register + OTP Login)
+Step 11 — Create routes/authRoutes.js
+
+Step 12 — Create controllers/authController.js
+
+Part 9 — Sites API
+Step 13 — Create routes/siteRoutes.js
+
+Step 14 — Create controllers/siteController.js
+
+Part 10 — Orders API (Doctor → Pharmacy)
+Step 15 — Create routes/orderRoutes.js
+
+Step 16 — Create controllers/orderController.js
+
+Part 11 — Volunteer Assignment (AI-Powered)
+This is the core AI feature. When a volunteer joins a site, we call the Gemini API to analyze their profession and assign them the right role.
+
+Step 17 — Create routes/volunteerRoutes.js
+
+Step 18 — Create controllers/volunteerController.js
+
+Part 12 — Donations API
+Step 19 — Create routes/donationRoutes.js
+
+Step 20 — Create controllers/donationController.js
+
+Part 13 — Emergency Chatbot API
+Step 21 — Create routes/chatbotRoutes.js
+
+Step 22 — Create controllers/chatbotController.js
+
+Part 14 — Patient Tags API
+Step 23 — Create routes/patientRoutes.js
+
+Step 24 — Create controllers/patientController.js
+
+Part 15 — Testing Your API
+Step 25 — Run the Server
+
+Step 26 — Test with a Free Tool (Thunder Client or Postman)
+Install the  Thunder Client  extension in VS Code (free). Then test each endpoint:
+
+
+Part 16 — Deploying to the Internet
+Use Railway.app — free tier, no credit card needed for small projects.
+
+Step 27 — Push Code to GitHub
+
+Step 28 — Deploy on Railway
+Go to  https://railway.app  and sign in with GitHub
+Click  New Project  →  Deploy from GitHub Repo
+Select your  resqlink-backend  repository
+Click  Add Variables  and add all the keys from your .env file
+Railway will auto-detect your Node.js app and deploy it
+Click the deployment URL to confirm it works
+
+
+Quick Reference — All API Endpoints
+
+
+ResQLink Backend Guide — Gemini API Edition. Ready to build.
+==================================================
+
+--- ResQLink_PRD.docx ---
+
+RESQLINK
+Disaster Relief Coordination Platform
+Product Requirements Document  |  v1.0
+
+
+1. Project Overview
+ResQLink is a web-based disaster relief coordination platform designed to bring structure, efficiency, and real-time intelligence to post-disaster relief operations. When a disaster strikes and survivors move to safe zones, the current model of help is chaotic — people show up without direction, resources are duplicated or wasted, and urgent needs go unmet.
+
+ResQLink solves this by giving every relief actor — doctors, pharmacies, volunteers, and donors — a dedicated, role-specific interface powered by AI task assignment. The platform ties all of these roles together in a unified coordination layer.
+
+
+2. User Roles & Personas
+The platform has 5 primary user roles, each with a distinct registration flow, dashboard, and feature set.
+
+
+
+3. Site Map & Navigation
+All pages are accessible from a single-page application (SPA) structure with role-based routing. Unauthenticated users land on the Home page. After login, the user is redirected to their role-specific dashboard.
+
+
+4. Detailed Feature Specifications
+4.1 Home Page  /
+The home page serves as both a landing page and the entry point for all user types.
+
+4.1.1 Header / Nav
+Top-left: ResQLink logo (SVG, links to /)
+Top-right: Two buttons — [Help Me] (orange, chatbot) and [Donate] (blue, /donate)
+
+4.1.2 Role Selector
+Three tabs/buttons prominently centered: [Doctor]  [Pharmacy]  [Volunteer]
+Default selected: Volunteer
+On tab click: login form below updates to the correct field set (no page reload)
+
+4.1.3 Login Forms
+Each role has a distinct set of registration/login fields. On first visit the form acts as registration; return users authenticate with phone + OTP or password.
+
+
+Fields for Pharmacy login:
+
+
+Fields for Volunteer login:
+
+
+4.2 Site Card Dashboard (All Roles)
+After login, all three role types (Doctor, Pharmacy, Volunteer) land on a shared dashboard layout showing available relief sites as cards.
+
+
+Design notes:
+Cards in a responsive grid (3-col desktop, 2-col tablet, 1-col mobile)
+Urgent requirement badges are color-coded: red = critical shortage, yellow = moderate, green = covered
+Cards sorted by urgency score descending (most urgent first)
+
+4.3 Doctor — Site Page  /site/:id/doctor
+When a doctor clicks 'Volunteer Here' on a site card, they go to the Doctor site page.
+
+4.3.1 Patient Tags
+Each patient at the site is represented as a collapsible tag card (Patient ID + triage level)
+Doctor can expand any patient tag and fill in:
+Medicines needed (name, dosage, quantity)
+Medical equipment needed (IV, oxygen, etc.)
+Priority level (Urgent / Moderate / Stable)
+Notes / instructions for nurse
+Submission sends the request to the pharmacy queue
+Doctors can see which requests are fulfilled vs. pending
+
+4.4 Pharmacy — Site Page  /site/:id/pharmacy
+After clicking 'Volunteer Here', pharmacy goes to their site detail page.
+
+4.4.1 Order Queue
+Pharmacy selects which site they are supplying (dropdown if multiple)
+Sees list of pending orders from doctors at that site
+Each order shows: Patient ID, medicine/equipment name, quantity, priority
+Pharmacy can mark individual items as: Available / Partially Available / Unavailable
+On confirmation, order is flagged for driver pickup
+
+4.4.2 Driver Dispatch
+Once an order is packed, status changes to 'Ready for Pickup'
+AI assigns the nearest available driver automatically
+Pharmacy sees driver name + ETA on the order card
+
+4.5 Volunteer System
+Based on the volunteer's registered profession and capabilities, the AI assigns them one of 3 operational roles. This assignment happens automatically on their first login after joining a site.
+
+4.5.1 Nurse Volunteer  /site/:id/nurse
+
+4.5.2 Driver Volunteer  /site/:id/driver
+The driver page handles 3 sub-scenarios based on registration data:
+
+
+Mandatory deliveries (critically short items) show as a locked red card — no choice, must be completed first
+Map integration: embedded Google Maps / Leaflet with turn-by-turn directions
+On completion, driver marks task done; AI reassigns the next task
+
+4.5.3 Helper Volunteer  /site/:id/helper
+
+4.6 Donation Hub  /donate
+Accessible from the top-right [Donate] button. Shows two large option cards.
+
+4.6.1 Monetary Donation  /donate/monetary
+Redirect to secure payment gateway (Razorpay / Stripe integration)
+Option to set donation amount or choose preset amounts
+UPI, card, net banking support (for Indian context)
+Receipt sent via SMS/email
+
+4.6.2 In-Kind Donation  /donate/inkind
+
+4.7 Help Me — Emergency Chatbot  /help
+Opened via the [Help Me] orange button in the header. Renders as a full-screen or slide-over chat panel.
+
+
+5. AI & Intelligence Features
+AI is the backbone of ResQLink's task routing. Below is a specification for each AI feature.
+
+
+6. Recommended Tech Stack
+
+7. Core Data Models
+User
+
+Site
+
+Order
+
+Donation
+
+8. MVP Scope vs. Future Roadmap
+
+9. Vibe Coding Guide — Build Order
+Follow this sequence when building the project to minimize rework and blockers.
+
+
+10. Key UX & Design Principles
+Speed is survival: All critical actions must be reachable in 3 taps or fewer
+Mobile-first: Design for small screens; most users will be on phones in the field
+High contrast: Use large fonts (min 16px body), strong color contrast for outdoor sunlight readability
+Offline-awareness: Show clear 'You are offline' banners; cache last known site data
+No jargon: All labels in plain, simple language. Avoid medical/technical terminology in UI
+Emergency numbers always visible: Chatbot button always in header, never hidden
+AI is assistive, not blocking: AI task assignments can be overridden by site admins or senior volunteers
+Urgency is visual: Red/orange/green color coding must be consistent across all pages
+
+
+
+ResQLink PRD v1.0  |  Ready for Development
+==================================================
+
+--- Disaster Management App Blueprint.docx ---
+This clarifies the entire architecture perfectly. With exactly three volunteer tracks, a placeholder for the payment gateway, and a clear understanding that patient tags act purely as offline identifiers for logistics, the system's logic is locked in.
+To make this platform highly organized for people moving from danger zones to safe zones, the underlying web development stack will need a robust backend. Using Python alongside advanced data structures—particularly graph algorithms for the delivery routing, similar to the networking logic used in a "Six Degrees of Separation" model—will be ideal for handling the AI dispatch matching.
+
+Here is the complete, exhaustive blueprint of your disaster management web application from front to back.
+
+🌐 Global Interface & Navigation
+The application features a persistent home page header displaying your custom logo in the top left corner.
+
+The top right corner prominently features a "Donate" option.
+
+Directly adjacent to the donate button is a "Help Me" feature designed for immediate crisis intervention.
+
+Clicking "Help Me" triggers a chatbot that immediately provides users with emergency phone numbers.
+
+The chatbot outputs real-time data regarding the nearest safe spots and provides instructions on immediate safety measures to take.
+
+🔐 Authentication & Role-Based Onboarding
+The main landing page requires users to select one of three specific pathways: Doctor, Pharmacy, or Volunteer.
+
+Volunteer Onboarding (Default View):
+The form captures name, phone number, profession, date of birth, and blood group.
+
+Volunteers specify their vehicle availability: whether they are an active driver, or if they are simply donating the use of an empty vehicle.
+
+Volunteers list any medical equipment they already possess and verify if they are medically fit.
+
+Volunteers state their on-site availability duration and any prior knowledge in disaster management.
+
+Based on their input, they can list immediate item demands that a driver can transport to the site.
+
+Doctor Onboarding:
+Selecting "Doctor" shifts the form to capture name, phone number, date of birth, blood group, and medical specialty.
+
+Pharmacy Onboarding:
+Selecting "Pharmacy" shifts the form to capture name, phone number, the physical address of the pharmacy, date of birth, and blood group.
+
+🎛️ The Command Center (Main Dashboard)
+Following login, all users are routed to a centralized home dashboard displaying active disaster sites.
+
+Sites are formatted as UI cards showing the site name and the current number of patients.
+
+Each card lists urgent personnel requirements, highlighting specific deficits in doctors, nurses, or drivers.
+
+The bottom of every site card contains a CTA (Call to Action) button labeled "Volunteer".
+
+🩺 1. The Medical Workflows (Doctor & Pharmacy)
+When medical personnel click the "Volunteer" CTA on a site card, they enter highly specialized operational workspaces.
+The Doctor Workflow:
+Doctors are directed to a specialized interface displaying offline-assigned patient tags for their chosen site.
+
+Because victims cannot operate the site, these tags serve as the primary routing keys for medication delivery.
+For each patient tag, the doctor digitally writes out specific needs, requesting medicines and equipment from the pharmacy.
+
+The Pharmacy Workflow:
+Pharmacies enter a dedicated page where they choose the specific site they are supplying.
+
+They view a real-time ledger of the specific medical orders submitted by the doctors.
+
+Pharmacies pack the orders accordingly, queuing them in the system to be picked up by a driver volunteer.
+
+⚙️ 2. The Volunteer Engine (AI Dispatch)
+When a general user clicks the "Volunteer" CTA on a site card, an AI engine analyzes their provided profession data and assigns them one of three specific operational tracks.
+
+Track 1: The Nurse Interface
+Nurses are routed to a distinct dashboard where they can submit demands for supplies.
+
+Nurse demands are restricted to basic first aid items; they cannot request heavy medicines.
+
+They view the exact quantity of resources currently available on site.
+
+They utilize a digital to-do list to associate patient tags with the appropriate physical measures they need to administer.
+
+They have an integrated call option to contact and coordinate with tending volunteers assigned under them.
+
+Track 2: The Vehicle & Logistics Interface
+Vehicle operators are given a separate logistics hub.
+
+Active Drivers: The AI generates a choice list of pharmacies and sites to ensure the equal distribution of donated resources.
+
+Urgent Overrides: If a site faces a critical, urgent requirement, the AI overrides the choices and issues a mandatory, single-site delivery route to the driver.
+
+Priority Sorting: The driver's task list is color-coded and sorted in descending order of emergency (red for most urgent, green for least urgent).
+
+Navigation: Upon selecting a site, the driver receives precise pickup/drop-off details mapped onto an in-app interface for ease.
+
+Vehicle Only: If a user only has a vehicle, they input the vehicle type and current address; the AI then assigns an available driver to it.
+
+Skill Only: If a user can drive but has no vehicle, the AI automatically pairs them with an idle vehicle.
+
+Track 3: The Helping Volunteer Interface
+General helpers are routed to a separate coordination page.
+
+The AI evaluates their data and assigns them a specific operational lead (e.g., a nurse, head chef, or tent-making team).
+
+Helpers are given the exact geographic location to report to.
+
+Helpers are issued a suggested to-do list of tasks.
+
+Helpers have tools to raise complaints regarding their workspace, teammates, or leads.
+
+Helpers can submit operational suggestions.
+
+Helpers utilize a call function to connect directly with their assigned lead.
+
+📦 3. The Donation & Resource Routing Engine
+Activating the "Donate" button opens a portal with two distinct tracks: monetary or physical goods.
+
+Monetary Donations: This tab will feature an open interface prepared to integrate an external payment gateway for processing financial contributions.
+Physical Goods ("Others"): This track routes users to an inventory input page.
+
+Users enter the specific type of donation (e.g., clothes, food), which the AI automatically categorizes.
+
+Users enter the exact quantity.
+
+Users choose if they want to deliver the items themselves.
+
+If self-delivering, the system provides the safe zone location and offers the user the option to register as a driver volunteer, routing them into the logistics workflow.
+
+If they cannot deliver, the system flags the items and automatically dispatches a driver volunteer to their location for pickup.
+
+Would you like to start outlining the specific relational database tables (like how the Doctor table will link to the Patient_Tags and Pharmacy_Orders tables) so you can begin structuring your backend?
+==================================================
+
