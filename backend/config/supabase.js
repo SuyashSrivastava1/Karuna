@@ -9,6 +9,14 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
+// Validate URL format
+try {
+  new URL(supabaseUrl);
+} catch (e) {
+  console.error('FATAL: SUPABASE_URL is not a valid URL.');
+  process.exit(1);
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 module.exports = supabase;

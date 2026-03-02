@@ -5,7 +5,7 @@ const supabase = require('../config/supabase');
 const createFlag = async (req, res) => {
     const { site_id, type, issue_type, title, description, severity } = req.body;
 
-    if (!site_id || !type || !description) {
+    if (!site_id || !type || !description || !description.trim()) {
         return res.status(400).json({ message: 'site_id, type, and description are required' });
     }
 
@@ -24,16 +24,28 @@ const createFlag = async (req, res) => {
         return res.status(400).json({ message: `issue_type must be one of: ${validIssueTypes.join(', ')}` });
     }
 
+    // Description length cap
+    const trimmedDesc = description.trim();
+    if (trimmedDesc.length > 2000) {
+        return res.status(400).json({ message: 'description cannot exceed 2000 characters' });
+    }
+
     try {
+        // Verify site exists
+        const { data: site } = await supabase.from('sites').select('id').eq('id', site_id).single();
+        if (!site) {
+            return res.status(404).json({ message: 'Site not found' });
+        }
+
         const { data, error } = await supabase
             .from('flags')
             .insert([{
                 site_id,
                 submitted_by: req.user.id,
-                type,              // 'suggestion' or 'complaint'
+                type,
                 issue_type: issue_type || null,
-                title: title || null,
-                description,
+                title: title ? title.trim().substring(0, 200) : null,
+                description: trimmedDesc,
                 severity: severity || 'Medium',
                 status: 'open'
             }])
@@ -56,31 +68,49 @@ const getFlagsBySite = async (req, res) => {
             .eq('site_id', req.params.siteId)
             .order('created_at', { ascending: false });
 
-        if (req.query.type) query = query.eq('type', req.query.type);
+        if (req.query.type) {
+            if (!['suggestion', 'complaint'].includes(req.query.type)) {
+                return res.status(400).json({ message: 'type filter must be "suggestion" or "complaint"' });
+            }
+            query = query.eq('type', req.query.type);
+        }
         if (req.query.status) query = query.eq('status', req.query.status);
 
         const { data, error } = await query;
         if (error) throw error;
-        res.status(200).json(data);
+        res.status(200).json(data || []);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Update flag status (e.g. resolve it)
+// @desc    Update flag status
 // @route   PUT /api/flags/:id
 const updateFlag = async (req, res) => {
     const { status, resolution_note } = req.body;
-    const validStatuses = ['open', 'acknowledged', 'resolved', 'dismissed'];
 
-    if (status && !validStatuses.includes(status)) {
+    if (!status) {
+        return res.status(400).json({ message: 'status is required' });
+    }
+
+    const validStatuses = ['open', 'acknowledged', 'resolved', 'dismissed'];
+    if (!validStatuses.includes(status)) {
         return res.status(400).json({ message: `status must be one of: ${validStatuses.join(', ')}` });
     }
 
     try {
+        // Verify flag exists
+        const { data: existing } = await supabase.from('flags').select('id').eq('id', req.params.id).single();
+        if (!existing) {
+            return res.status(404).json({ message: 'Flag not found' });
+        }
+
         const { data, error } = await supabase
             .from('flags')
-            .update({ status, resolution_note: resolution_note || null })
+            .update({
+                status,
+                resolution_note: resolution_note ? resolution_note.trim().substring(0, 1000) : null
+            })
             .eq('id', req.params.id)
             .select();
 

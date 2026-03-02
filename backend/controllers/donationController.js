@@ -1,7 +1,9 @@
 const supabase = require('../config/supabase');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = process.env.GEMINI_API_KEY
+    ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+    : null;
 
 // @desc    Create a donation
 // @route   POST /api/donations
@@ -13,36 +15,58 @@ const createDonation = async (req, res) => {
         return res.status(400).json({ message: 'Donation type is required (monetary or inkind)' });
     }
 
-    if (type === 'monetary' && !amount) {
-        return res.status(400).json({ message: 'Amount is required for monetary donations' });
+    const validTypes = ['monetary', 'inkind'];
+    if (!validTypes.includes(type)) {
+        return res.status(400).json({ message: `type must be one of: ${validTypes.join(', ')}` });
     }
 
-    if (type === 'inkind' && !items) {
-        return res.status(400).json({ message: 'Items description is required for in-kind donations' });
+    if (type === 'monetary') {
+        if (!amount) return res.status(400).json({ message: 'Amount is required for monetary donations' });
+        if (typeof amount !== 'number' || amount <= 0) {
+            return res.status(400).json({ message: 'Amount must be a positive number' });
+        }
+        if (amount > 10000000) {
+            return res.status(400).json({ message: 'Amount exceeds maximum limit' });
+        }
+    }
+
+    if (type === 'inkind') {
+        if (!items) return res.status(400).json({ message: 'Items description is required for in-kind donations' });
+    }
+
+    // If pickup requested, address is required
+    if (type === 'inkind' && self_delivery === false && !delivery_address) {
+        return res.status(400).json({ message: 'delivery_address is required when not self-delivering' });
+    }
+
+    // Validate email format if provided
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ message: 'Invalid email format' });
     }
 
     try {
-        // Auto-categorize in-kind donations using AI
+        // AI categorization for in-kind
         let category = null;
-        if (type === 'inkind' && items) {
+        if (type === 'inkind' && items && genAI) {
             try {
                 const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-                const prompt = `Categorize this donated item into ONE of these categories: FOOD, CLOTHING, MEDICINE, EQUIPMENT, SHELTER, HYGIENE, OTHER.
-        Item: "${typeof items === 'string' ? items : JSON.stringify(items)}"
-        Return ONLY the category name as a single word.`;
+                const itemsStr = typeof items === 'string' ? items.substring(0, 200) : JSON.stringify(items).substring(0, 200);
+                const prompt = `Categorize this donated item into ONE of: FOOD, CLOTHING, MEDICINE, EQUIPMENT, SHELTER, HYGIENE, OTHER.\nItem: "${itemsStr}"\nReturn ONLY the category name.`;
 
                 const result = await model.generateContent(prompt);
-                category = result.response.text().trim().toUpperCase();
+                category = result.response.text().trim().toUpperCase().replace(/[^A-Z]/g, '');
 
                 const validCategories = ['FOOD', 'CLOTHING', 'MEDICINE', 'EQUIPMENT', 'SHELTER', 'HYGIENE', 'OTHER'];
                 if (!validCategories.includes(category)) category = 'OTHER';
             } catch (e) {
                 category = 'OTHER';
             }
+        } else if (type === 'inkind') {
+            category = 'OTHER';
         }
 
         const donationData = {
-            donor_name: donor_name || 'Anonymous',
+            donor_name: donor_name ? donor_name.trim().substring(0, 100) : 'Anonymous',
             phone: phone || null,
             email: email || null,
             type,
@@ -51,8 +75,8 @@ const createDonation = async (req, res) => {
             category,
             site_id: site_id || null,
             self_delivery: self_delivery || false,
-            delivery_address: delivery_address || null,
-            delivery_status: self_delivery ? 'self_delivering' : 'awaiting_pickup'
+            delivery_address: delivery_address ? delivery_address.trim() : null,
+            delivery_status: type === 'inkind' ? (self_delivery ? 'self_delivering' : 'awaiting_pickup') : null
         };
 
         const { data, error } = await supabase
@@ -62,14 +86,13 @@ const createDonation = async (req, res) => {
 
         if (error) throw error;
 
-        // Build response message based on delivery preference
         let deliveryMessage = '';
         if (type === 'inkind') {
-            if (self_delivery) {
-                deliveryMessage = 'Thank you! Please deliver the items to the nearest relief site. Check /api/sites for active locations.';
-            } else {
-                deliveryMessage = 'Thank you! A volunteer driver will be dispatched to pick up your donation.';
-            }
+            deliveryMessage = self_delivery
+                ? 'Thank you! Please deliver the items to the nearest relief site. Check /api/sites for active locations.'
+                : 'Thank you! A volunteer driver will be dispatched to pick up your donation.';
+        } else {
+            deliveryMessage = 'Thank you for your monetary donation!';
         }
 
         res.status(201).json({
@@ -91,21 +114,21 @@ const getDonations = async (req, res) => {
             .select('*')
             .order('created_at', { ascending: false });
 
-        // Filter by type
         if (req.query.type) {
+            if (!['monetary', 'inkind'].includes(req.query.type)) {
+                return res.status(400).json({ message: 'type filter must be "monetary" or "inkind"' });
+            }
             query = query.eq('type', req.query.type);
         }
-
-        // Filter by delivery status
         if (req.query.delivery_status) {
             query = query.eq('delivery_status', req.query.delivery_status);
         }
 
         const { data, error } = await query;
         if (error) throw error;
-        res.status(200).json(data);
+        res.status(200).json(data || []);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -119,7 +142,9 @@ const getDonationById = async (req, res) => {
             .eq('id', req.params.id)
             .single();
 
-        if (error) throw error;
+        if (error || !data) {
+            return res.status(404).json({ message: 'Donation not found' });
+        }
         res.status(200).json(data);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -131,16 +156,23 @@ const getDonationById = async (req, res) => {
 const updateDonation = async (req, res) => {
     const { delivery_status } = req.body;
 
+    if (!delivery_status) {
+        return res.status(400).json({ message: 'delivery_status is required' });
+    }
+
     const validStatuses = ['awaiting_pickup', 'self_delivering', 'driver_assigned', 'in_transit', 'delivered'];
-    if (delivery_status && !validStatuses.includes(delivery_status)) {
-        return res.status(400).json({
-            message: `delivery_status must be one of: ${validStatuses.join(', ')}`
-        });
+    if (!validStatuses.includes(delivery_status)) {
+        return res.status(400).json({ message: `delivery_status must be one of: ${validStatuses.join(', ')}` });
     }
 
     try {
-        const updateData = {};
-        if (delivery_status) updateData.delivery_status = delivery_status;
+        // Verify donation exists
+        const { data: existing } = await supabase.from('donations').select('id, delivery_status').eq('id', req.params.id).single();
+        if (!existing) {
+            return res.status(404).json({ message: 'Donation not found' });
+        }
+
+        const updateData = { delivery_status };
         if (delivery_status === 'delivered') updateData.delivered_at = new Date().toISOString();
 
         const { data, error } = await supabase
@@ -156,9 +188,4 @@ const updateDonation = async (req, res) => {
     }
 };
 
-module.exports = {
-    createDonation,
-    getDonations,
-    getDonationById,
-    updateDonation
-};
+module.exports = { createDonation, getDonations, getDonationById, updateDonation };

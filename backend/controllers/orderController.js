@@ -1,7 +1,18 @@
 const supabase = require('../config/supabase');
 
-// Priority mapping for proper sorting
 const PRIORITY_MAP = { 'Urgent': 3, 'High': 3, 'Moderate': 2, 'Medium': 2, 'Stable': 1, 'Low': 1 };
+const VALID_STATUSES = ['pending', 'available', 'partially_available', 'unavailable', 'ready_for_pickup', 'in_transit', 'delivered'];
+
+// Valid status transitions — prevents skipping lifecycle steps
+const VALID_TRANSITIONS = {
+    'pending': ['available', 'partially_available', 'unavailable'],
+    'available': ['ready_for_pickup'],
+    'partially_available': ['ready_for_pickup', 'unavailable'],
+    'unavailable': [],
+    'ready_for_pickup': ['in_transit'],
+    'in_transit': ['delivered'],
+    'delivered': []
+};
 
 // @desc    Get all orders for a site
 // @route   GET /api/orders/:siteId
@@ -13,26 +24,27 @@ const getOrders = async (req, res) => {
             .eq('site_id', req.params.siteId)
             .order('created_at', { ascending: false });
 
-        // Filter by status if query param provided
         if (req.query.status) {
+            if (!VALID_STATUSES.includes(req.query.status)) {
+                return res.status(400).json({ message: `Invalid status filter. Must be one of: ${VALID_STATUSES.join(', ')}` });
+            }
             query = query.eq('status', req.query.status);
         }
 
         const { data, error } = await query;
         if (error) throw error;
 
-        // Sort by priority weight (Urgent > Moderate > Stable)
-        const sorted = data.sort((a, b) => {
+        const sorted = (data || []).sort((a, b) => {
             return (PRIORITY_MAP[b.priority] || 0) - (PRIORITY_MAP[a.priority] || 0);
         });
 
         res.status(200).json(sorted);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: error.message });
     }
 };
 
-// @desc    Create a new order (Doctor prescribes for a patient)
+// @desc    Create a new order
 // @route   POST /api/orders
 const createOrder = async (req, res) => {
     const { site_id, patient_id, medicine_name, equipment_name, quantity, priority, notes } = req.body;
@@ -43,24 +55,36 @@ const createOrder = async (req, res) => {
         });
     }
 
+    // Validate priority
+    const validPriorities = ['Urgent', 'Medium', 'Low'];
+    if (priority && !validPriorities.includes(priority)) {
+        return res.status(400).json({ message: `priority must be one of: ${validPriorities.join(', ')}` });
+    }
+
+    // Verify site exists
     try {
+        const { data: site } = await supabase.from('sites').select('id').eq('id', site_id).single();
+        if (!site) {
+            return res.status(404).json({ message: 'Site not found' });
+        }
+
         const { data, error } = await supabase
             .from('orders')
             .insert([{
                 site_id,
                 patient_id,
                 doctor_id: req.user.id,
-                medicine_name: medicine_name || null,
-                equipment_name: equipment_name || null,
-                quantity,
+                medicine_name: medicine_name ? medicine_name.trim() : null,
+                equipment_name: equipment_name ? equipment_name.trim() : null,
+                quantity: quantity || null,
                 priority: priority || 'Medium',
-                notes,
+                notes: notes ? notes.trim() : null,
                 status: 'pending'
             }])
             .select();
 
         if (error) throw error;
-        res.status(201).json(data);
+        res.status(201).json(data[0]);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -71,28 +95,41 @@ const createOrder = async (req, res) => {
 const updateOrder = async (req, res) => {
     const { status, pharmacy_notes } = req.body;
 
-    const validStatuses = ['pending', 'available', 'partially_available', 'unavailable', 'ready_for_pickup', 'in_transit', 'delivered'];
+    if (!status && !pharmacy_notes) {
+        return res.status(400).json({ message: 'Provide status or pharmacy_notes to update' });
+    }
 
-    if (status && !validStatuses.includes(status)) {
-        return res.status(400).json({
-            message: `status must be one of: ${validStatuses.join(', ')}`
-        });
+    if (status && !VALID_STATUSES.includes(status)) {
+        return res.status(400).json({ message: `status must be one of: ${VALID_STATUSES.join(', ')}` });
     }
 
     try {
+        // Fetch existing order to validate transition
+        const { data: existing, error: fetchErr } = await supabase
+            .from('orders')
+            .select('status')
+            .eq('id', req.params.id)
+            .single();
+
+        if (fetchErr || !existing) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        // Enforce valid status transition
+        if (status) {
+            const allowed = VALID_TRANSITIONS[existing.status] || [];
+            if (!allowed.includes(status)) {
+                return res.status(400).json({
+                    message: `Cannot transition from '${existing.status}' to '${status}'. Allowed: ${allowed.join(', ') || 'none (terminal state)'}`
+                });
+            }
+        }
+
         const updateData = {};
         if (status) updateData.status = status;
-        if (pharmacy_notes) updateData.pharmacy_notes = pharmacy_notes;
-
-        // If pharmacy marks as ready_for_pickup, record the timestamp
-        if (status === 'ready_for_pickup') {
-            updateData.ready_at = new Date().toISOString();
-        }
-
-        // If delivered, record the delivery timestamp
-        if (status === 'delivered') {
-            updateData.delivered_at = new Date().toISOString();
-        }
+        if (pharmacy_notes) updateData.pharmacy_notes = pharmacy_notes.trim();
+        if (status === 'ready_for_pickup') updateData.ready_at = new Date().toISOString();
+        if (status === 'delivered') updateData.delivered_at = new Date().toISOString();
 
         const { data, error } = await supabase
             .from('orders')
@@ -107,7 +144,7 @@ const updateOrder = async (req, res) => {
     }
 };
 
-// @desc    Get orders ready for driver pickup at a site
+// @desc    Get orders ready for driver pickup
 // @route   GET /api/orders/:siteId/pickup
 const getPickupOrders = async (req, res) => {
     try {
@@ -120,25 +157,19 @@ const getPickupOrders = async (req, res) => {
 
         if (error) throw error;
 
-        // Sort by priority: urgent items are locked (mandatory) for driver
-        const sorted = data.sort((a, b) => {
+        const sorted = (data || []).sort((a, b) => {
             return (PRIORITY_MAP[b.priority] || 0) - (PRIORITY_MAP[a.priority] || 0);
         });
 
         const result = sorted.map(order => ({
             ...order,
-            mandatory: (PRIORITY_MAP[order.priority] || 0) >= 3 // Urgent orders are mandatory
+            mandatory: (PRIORITY_MAP[order.priority] || 0) >= 3
         }));
 
         res.status(200).json(result);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: error.message });
     }
 };
 
-module.exports = {
-    getOrders,
-    createOrder,
-    updateOrder,
-    getPickupOrders
-};
+module.exports = { getOrders, createOrder, updateOrder, getPickupOrders };
