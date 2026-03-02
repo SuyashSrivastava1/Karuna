@@ -38,6 +38,7 @@ app.use('/api/volunteer-todos', require('./routes/volunteerTodoRoutes'));
 app.use('/api/chatbot', require('./routes/chatbotRoutes'));
 app.use('/api/donations', require('./routes/donationRoutes'));
 app.use('/api/patients', require('./routes/patientRoutes'));
+app.use('/api/flags', require('./routes/flagRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {

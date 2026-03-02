@@ -1,0 +1,428 @@
+# Karuna — Frontend Design Specification
+> Complete screen-by-screen guide for designers and developers.
+
+---
+
+## 🎨 Global Design System
+
+### Colors
+| Token | Usage | Suggested Color |
+|-------|-------|----------------|
+| `--color-primary` | Buttons, links, accents | Orange `#F97316` |
+| `--color-secondary` | Secondary buttons, donate | Blue `#3B82F6` |
+| `--color-danger` | Urgent/critical items | Red `#EF4444` |
+| `--color-warning` | Moderate items | Amber `#F59E0B` |
+| `--color-success` | Stable/fulfilled | Green `#22C55E` |
+| `--color-bg` | Page background | Dark `#0F172A` |
+| `--color-card` | Card backgrounds | `#1E293B` |
+| `--color-text` | Body text | `#F1F5F9` |
+| `--color-muted` | Placeholder, labels | `#94A3B8` |
+
+### Typography
+- **Font**: Inter (Google Fonts)
+- **Min body size**: 16px (outdoor readability per PRD)
+- **Headings**: Bold, high contrast
+- **Labels**: All-caps, small, muted
+
+### Rules (from PRD §10)
+- All critical actions reachable in **≤ 3 taps**
+- **Mobile-first** — design at 375px width first
+- **High contrast** — outdoor sunlight readability
+- **Emergency chatbot button always visible** in header
+- Red/orange/green urgency color coding must be consistent
+
+---
+
+## 📱 Page Index
+
+| Page | Route | Access |
+|------|-------|--------|
+| Home / Auth | `/` | Public |
+| Site Dashboard | `/dashboard` | Authenticated |
+| Doctor Site Page | `/site/:id/doctor` | Doctor only |
+| Pharmacy Site Page | `/site/:id/pharmacy` | Pharmacy only |
+| Nurse Page | `/site/:id/nurse` | Volunteer (NURSE track) |
+| Driver Page | `/site/:id/driver` | Volunteer (DRIVER track) |
+| Helper Page | `/site/:id/helper` | Volunteer (HELPER track) |
+| Donate Hub | `/donate` | Public |
+| Monetary Donation | `/donate/monetary` | Public |
+| In-Kind Donation | `/donate/inkind` | Public |
+| Emergency Chatbot | `/help` (slide-over panel) | Public |
+
+---
+
+## 🏠 Page 1 — Home / Auth `/`
+
+### Header (Persistent across all pages)
+| Element | Type | Details |
+|---------|------|---------|
+| Karuna Logo | SVG/Image | Top-left, links to `/` |
+| [Help Me] | Button | Top-right, **orange**, opens `/help` chatbot panel |
+| [Donate] | Button | Top-right, **blue**, links to `/donate` |
+
+### Role Selector Tabs
+| Element | Type | Details |
+|---------|------|---------|
+| Doctor Tab | Toggle Button | Default NOT selected |
+| Pharmacy Tab | Toggle Button | Default NOT selected |
+| Volunteer Tab | Toggle Button | **Default selected** |
+> On tab click: form fields below change dynamically — no page reload
+
+---
+
+### Auth Form — Volunteer (Default)
+| Field | Type | Required | Placeholder |
+|-------|------|----------|-------------|
+| Full Name | Text input | ✅ | "Your full name" |
+| Phone Number | Tel input | ✅ | "+91 XXXXX XXXXX" |
+| Date of Birth | Date picker | ✅ | DD/MM/YYYY |
+| Blood Group | Dropdown | ✅ | A+, A-, B+, B-, O+, O-, AB+, AB- |
+| Profession | Text input | ✅ | "e.g. Nurse, Teacher, Driver" |
+| Vehicle Availability | Dropdown | ✅ | None / Car / Bike / Truck / Ambulance |
+| Medical Equipment | Text input | ❌ | "e.g. First aid kit, oxygen mask" |
+| Medical Fitness | Toggle/Checkbox | ✅ | "I am medically fit" |
+| Availability Duration | Dropdown | ✅ | "2 hours / Half day / Full day / 2+ days" |
+| Disaster Knowledge | Dropdown | ❌ | None / Basic / Intermediate / Expert |
+| [Register / Login] | Submit Button | — | Orange, full-width |
+
+---
+
+### Auth Form — Doctor
+| Field | Type | Required | Placeholder |
+|-------|------|----------|-------------|
+| Full Name | Text input | ✅ | "Dr. Full Name" |
+| Phone Number | Tel input | ✅ | "+91 XXXXX XXXXX" |
+| Date of Birth | Date picker | ✅ | DD/MM/YYYY |
+| Blood Group | Dropdown | ✅ | A+, A-, B+, B-, etc. |
+| Medical Specialty | Text input | ✅ | "e.g. General, Cardiology, Surgery" |
+| [Register / Login] | Submit Button | — | Orange, full-width |
+
+---
+
+### Auth Form — Pharmacy
+| Field | Type | Required | Placeholder |
+|-------|------|----------|-------------|
+| Full Name | Text input | ✅ | "Pharmacy / Person Name" |
+| Phone Number | Tel input | ✅ | "+91 XXXXX XXXXX" |
+| Date of Birth | Date picker | ✅ | DD/MM/YYYY |
+| Blood Group | Dropdown | ✅ | A+, A-, etc. |
+| Pharmacy Address | Textarea | ✅ | "Full address of the pharmacy" |
+| [Register / Login] | Submit Button | — | Orange, full-width |
+
+---
+
+### OTP Verification Step (appears after submit)
+| Element | Type | Details |
+|---------|------|---------|
+| Info text | Text | "OTP sent to +91 XXXXX" |
+| OTP Code | 6-digit pin input | Auto-focus, number only |
+| [Verify OTP] | Button | Orange |
+| [Resend OTP] | Text link | Muted, 30s countdown |
+
+**API Calls:**
+- `POST /api/auth/register` with all form fields → on first visit
+- `POST /api/auth/login` with phone → sends OTP
+- `POST /api/auth/verify-otp` with phone + token → returns `access_token`
+- Store `access_token` in localStorage / secure cookie
+
+---
+
+## 🗺️ Page 2 — Site Dashboard `/dashboard`
+
+> All 3 roles (Doctor, Pharmacy, Volunteer) land here after login.
+
+### Header (same as global)
+Add: **User avatar / name** top-right with role badge (Doctor / Pharmacy / Volunteer)
+
+### Site Cards Grid
+- **3 columns** desktop → 2 tablet → 1 mobile
+- Sorted by urgency (highest first — comes pre-sorted from backend)
+
+**Each Site Card contains:**
+| Element | Type | Details |
+|---------|------|---------|
+| Site Name | Heading (H2) | Bold, white |
+| Location | Small text | Muted, with 📍 icon |
+| Patient Count | Badge | "👥 42 patients" |
+| Urgency Badge | Color badge | Red=Critical, Yellow=Moderate, Green=Covered |
+| Personnel Needs | Tags | "Needs: 3 Doctors · 5 Nurses · 2 Drivers" — color coded |
+| [Volunteer Here] | CTA Button | Full-width, orange |
+
+> Clicking [Volunteer Here] → calls `POST /api/sites/:id/join` → then routes to role-specific page
+
+**API Calls:**
+- `GET /api/sites` → fetch all sites
+- `GET /api/sites/:id/stats` → live personnel counts shown on card
+
+---
+
+## 🩺 Page 3 — Doctor Site Page `/site/:id/doctor`
+
+### Top Section
+| Element | Type | Details |
+|---------|------|---------|
+| Site name + back button | Header | "← General Hospital" |
+| Patient count | Stat badge | "32 Patients" |
+
+### Patient Tag List
+Each patient is a **collapsible card**:
+
+**Collapsed state:**
+| Element | Details |
+|---------|---------|
+| Patient ID | "TAG-001", bold |
+| Triage badge | Urgent (red) / Moderate (yellow) / Stable (green) |
+| Status icons | Pending orders indicator |
+| [Expand ▼] | Chevron icon |
+
+**Expanded state — Order Form inside each card:**
+| Field | Type | Required | Placeholder |
+|-------|------|----------|-------------|
+| Medicines Needed | Text input | ❌ | "e.g. Paracetamol 500mg" |
+| Equipment Needed | Text input | ❌ | "e.g. IV drip, Oxygen mask" |
+| Quantity | Text input | ✅ | "e.g. 2 strips, 1 unit" |
+| Priority | Dropdown | ✅ | Urgent / Medium / Low |
+| Notes for Nurse | Textarea | ❌ | "Instructions for nurse..." |
+| [Submit Order] | Button | — | Orange |
+
+**Below the form — Existing orders for this patient:**
+| Element | Details |
+|---------|---------|
+| Order item row | Medicine name + quantity + priority badge |
+| Status tag | Pending (grey) / Available (green) / Unavailable (red) |
+
+**API Calls:**
+- `GET /api/patients/:siteId` → list all patient tags
+- `POST /api/patients` → create new patient tag (if site admin)
+- `PUT /api/patients/:id` → update triage / notes
+- `POST /api/orders` → submit order for a patient
+- `GET /api/orders/:siteId?status=pending` → view order statuses
+
+---
+
+## 💊 Page 4 — Pharmacy Site Page `/site/:id/pharmacy`
+
+### Top Section
+| Element | Type | Details |
+|---------|------|---------|
+| Site selector | Dropdown | "Supplying: General Hospital" → `GET /api/sites` |
+| Back button | Icon button | ← |
+
+### Order Queue
+Each order is a card:
+| Element | Details |
+|---------|---------|
+| Patient ID | "TAG-003" |
+| Medicine / Equipment | Item name |
+| Quantity | Requested quantity |
+| Priority badge | Urgent (red) / Medium (yellow) / Low (grey) |
+| Status Buttons | 3 options below |
+
+**Status action buttons (per order item):**
+| Button | Action | Color |
+|--------|--------|-------|
+| [Available ✓] | Sets status → `available` | Green |
+| [Partially Available] | Sets status → `partially_available` | Yellow |
+| [Unavailable ✗] | Sets status → `unavailable` | Red |
+
+**When all items are marked, show:**
+| Button | Action |
+|--------|--------|
+| [Order Ready for Pickup 🚚] | Sets all → `ready_for_pickup` |
+
+**API Calls:**
+- `GET /api/orders/:siteId` → fetch pending orders
+- `PUT /api/orders/:id` with `{ status, pharmacy_notes }` → update each item
+
+---
+
+## 🏥 Page 5 — Nurse Page `/site/:id/nurse`
+
+### Top Section
+| Element | Details |
+|---------|---------|
+| Track badge | "You are: 🏥 Nurse Volunteer" |
+| Site name | Heading |
+
+### Todo List
+| Element | Type | Details |
+|---------|------|---------|
+| Add task input | Text input | "Add a new task..." |
+| [+ Add] | Button | Small, orange, right of input |
+
+**Each todo item:**
+| Element | Details |
+|---------|---------|
+| Checkbox | Check to mark complete |
+| Task description | Text |
+| Patient tag link | Optional "TAG-002" badge |
+| Status badge | Pending / In Progress / Completed |
+| [Delete] | Small icon button (trash), red |
+
+**API Calls:**
+- `GET /api/volunteer-todos/:siteId` → load my todos
+- `POST /api/volunteer-todos` → add a task
+- `PUT /api/volunteer-todos/:id` → mark complete / in progress
+- `DELETE /api/volunteer-todos/:id` → remove
+
+---
+
+## 🚗 Page 6 — Driver Page `/site/:id/driver`
+
+### Top Section
+| Element | Details |
+|---------|---------|
+| Track badge | "You are: 🚗 Driver Volunteer" |
+
+### Delivery Task List
+Tasks fetched from `GET /api/orders/:siteId/pickup`
+
+**Each task card:**
+| Element | Details |
+|---------|---------|
+| Priority badge | Red = Urgent (🔒 mandatory), Yellow = Medium, Green = Low |
+| Item description | "Deliver: Paracetamol 500mg x 10 to TAG-003" |
+| From (Pharmacy) | Address / name |
+| To (Site) | Site name + location |
+| [Mark as Delivered] | Button, green |
+| 🔒 Locked card style | For urgent/mandatory deliveries — cannot skip |
+
+> **Locked red card** = `mandatory: true` from backend — must be completed first (per Blueprint)
+
+**API Calls:**
+- `GET /api/orders/:siteId/pickup` → get pickup queue
+- `PUT /api/orders/:id` with `{ status: "delivered" }` → mark done
+
+---
+
+## 🤝 Page 7 — Helper Page `/site/:id/helper`
+
+### Top Section
+| Element | Details |
+|---------|---------|
+| Track badge | "You are: 🤝 Helper Volunteer" |
+| Assigned Lead | "Report to: Nurse Sita / Head Chef Ramu" |
+| Report Location | "Go to: Zone B, Tent 3" |
+
+### AI-Generated Task List (auto-populated from volunteer assignment)
+Same todo UI as Nurse page — pre-filled with `suggested_tasks` from the AI response.
+
+**API Calls:**
+- `GET /api/volunteer-todos/:siteId` → load assigned tasks
+- Same CRUD as Nurse todos
+
+---
+
+## 💝 Page 8 — Donation Hub `/donate`
+
+### Two large option cards:
+| Card | Icon | Label | Link |
+|------|------|-------|------|
+| Monetary | 💰 | "Donate Money" | → `/donate/monetary` |
+| In-Kind | 📦 | "Donate Supplies" | → `/donate/inkind` |
+
+---
+
+## 💰 Page 9 — Monetary Donation `/donate/monetary`
+
+| Field | Type | Required | Placeholder |
+|-------|------|----------|-------------|
+| Donor Name | Text input | ❌ | "Anonymous or your name" |
+| Email | Email input | ❌ | "For receipt" |
+| Phone | Tel input | ❌ | "For receipt via SMS" |
+| Amount | Number input | ✅ | "Enter amount" |
+| Quick amounts | Preset buttons | — | ₹100 / ₹500 / ₹1000 / ₹5000 |
+| [Proceed to Pay] | Button | — | Blue, full-width |
+
+> Payment gateway (Razorpay/Stripe) integration — button redirects to gateway
+
+**API Calls:**
+- `POST /api/donations` with `{ type: "monetary", amount, donor_name, email, phone }`
+
+---
+
+## 📦 Page 10 — In-Kind Donation `/donate/inkind`
+
+| Field | Type | Required | Placeholder |
+|-------|------|----------|-------------|
+| Donor Name | Text input | ❌ | "Your name or org name" |
+| Phone | Tel input | ❌ | "For coordination" |
+| Items Description | Textarea | ✅ | "e.g. 50 blankets, 20 food packets" |
+| Delivery Choice | Radio / Toggle | ✅ | See below |
+
+**Delivery Choice (Toggle):**
+| Option | Label | Shows next |
+|--------|-------|------------|
+| I'll deliver myself | 🚗 Self Delivery | Site location details |
+| Pick up from me | 📍 Arrange Pickup | Address input |
+
+**If Self-Delivery selected — show:**
+| Element | Details |
+|---------|---------|
+| Site list | Cards with site name + address → "Deliver here" |
+
+**If Pickup selected — show:**
+| Field | Type | Required | Placeholder |
+|-------|------|----------|-------------|
+| Pickup Address | Textarea | ✅ | "Your full address" |
+| Info text | Text | Muted | "A driver will contact you for pickup" |
+
+| Button | Details |
+|--------|---------|
+| [Submit Donation] | Orange, full-width |
+
+**API Calls:**
+- `POST /api/donations` with `{ type: "inkind", items, self_delivery: true/false, delivery_address }`
+- Response includes AI-generated category + delivery message
+
+---
+
+## 🆘 Page 11 — Emergency Chatbot `/help`
+> Opens as a **full-screen slide-over panel** from the [Help Me] button in the header. Always accessible.
+
+### Chat Interface
+| Element | Details |
+|---------|---------|
+| Header | "🆘 Karuna Emergency Assistant" + close X |
+| Emergency numbers | Pinned top bar: 📞 112 · 108 · 1078 |
+| Chat messages | Bubble layout — user (right, orange) / AI (left, dark) |
+| Typing indicator | Animated dots when AI is responding |
+
+### Input Area (bottom)
+| Element | Type | Details |
+|---------|------|---------|
+| Message input | Textarea | "Describe your situation..." |
+| [Send] | Icon button | Orange arrow, or Enter key |
+
+> First message should auto-suggest prompts:
+> - "I am stuck and need help"
+> - "I need medical assistance"
+> - "Where is the nearest safe zone?"
+
+**API Calls:**
+- `POST /api/chatbot/chat` with `{ message, history: [...previousMessages] }`
+- Store history in local state for multi-turn conversation
+
+---
+
+## 🔑 Shared Auth Logic
+
+| Action | When | API Call |
+|--------|------|---------|
+| Store token | After OTP verify | `localStorage.setItem('token', access_token)` |
+| Attach token | Every protected request | `Authorization: Bearer <token>` header |
+| Fetch profile | After login | `GET /api/auth/me` → get role, track, site |
+| Redirect by role | After login | Doctor → `/dashboard`, Volunteer → `/dashboard` |
+| Redirect by track | After joining site | NURSE → `/site/:id/nurse`, DRIVER → driver page, etc. |
+
+---
+
+## 🚨 Global States to Handle
+
+| State | UI Response |
+|-------|------------|
+| Offline | Banner: "You are offline. Showing cached data." |
+| Loading | Skeleton loaders (not spinners) on card grids |
+| Empty state | "No sites available right now" with illustration |
+| API error | Toast notification — red, bottom of screen |
+| Success | Toast notification — green, bottom of screen |

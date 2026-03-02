@@ -2,11 +2,17 @@ const supabase = require('../config/supabase');
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
+// NOTE: Volunteer extra fields (vehicle, medical, etc.) are NOT collected here.
+//       They are collected in the Site Join flow after the user picks a site.
 const registerUser = async (req, res) => {
-    const { email, password, phone, full_name, role, profession, blood_group,
-        date_of_birth, medical_specialty, pharmacy_address,
-        vehicle_availability, medical_equipment, medical_fitness,
-        availability_duration, disaster_knowledge } = req.body;
+    const {
+        email, password, phone, full_name, role,
+        blood_group, date_of_birth, profession,
+        // Doctor-specific
+        medical_specialty,
+        // Pharmacy-specific (blood_group NOT required for pharmacy)
+        pharmacy_address
+    } = req.body;
 
     // Input validation
     if (!phone || !full_name || !role) {
@@ -22,19 +28,15 @@ const registerUser = async (req, res) => {
         // 1. Create the auth user in Supabase
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email: email || `${phone.replace(/\+/g, '')}@karuna.app`,
-            password: password || phone, // fallback for OTP-first flow
+            password: password || phone,
             options: {
-                data: {
-                    phone,
-                    full_name,
-                    role
-                }
+                data: { phone, full_name, role }
             }
         });
 
         if (authError) throw authError;
 
-        // 2. Also insert a row into the users table with the full profile
+        // 2. Insert a profile row into the users table
         if (authData.user) {
             const profileData = {
                 id: authData.user.id,
@@ -42,15 +44,13 @@ const registerUser = async (req, res) => {
                 phone,
                 role,
                 profession: profession || null,
-                blood_group: blood_group || null,
                 date_of_birth: date_of_birth || null,
+                // blood_group only for doctor and volunteer — NOT required for pharmacy
+                blood_group: role !== 'pharmacy' ? (blood_group || null) : null,
                 medical_specialty: role === 'doctor' ? (medical_specialty || null) : null,
-                pharmacy_address: role === 'pharmacy' ? (pharmacy_address || null) : null,
-                vehicle_availability: vehicle_availability || null,
-                medical_equipment: medical_equipment || null,
-                medical_fitness: medical_fitness !== undefined ? medical_fitness : null,
-                availability_duration: availability_duration || null,
-                disaster_knowledge: disaster_knowledge || null
+                pharmacy_address: role === 'pharmacy' ? (pharmacy_address || null) : null
+                // vehicle_availability, medical_equipment, medical_fitness,
+                // availability_duration, disaster_knowledge — collected at site join
             };
 
             const { error: profileError } = await supabase
@@ -82,12 +82,8 @@ const loginUser = async (req, res) => {
     }
 
     try {
-        const { data, error } = await supabase.auth.signInWithOtp({
-            phone: phone,
-        });
-
+        const { data, error } = await supabase.auth.signInWithOtp({ phone });
         if (error) throw error;
-
         res.status(200).json({ message: 'OTP sent to your phone', data });
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -104,14 +100,8 @@ const verifyOTP = async (req, res) => {
     }
 
     try {
-        const { data, error } = await supabase.auth.verifyOtp({
-            phone,
-            token,
-            type: 'sms'
-        });
-
+        const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: 'sms' });
         if (error) throw error;
-
         res.status(200).json(data);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -129,7 +119,6 @@ const getMe = async (req, res) => {
             .single();
 
         if (error) throw error;
-
         res.status(200).json(data);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -139,10 +128,12 @@ const getMe = async (req, res) => {
 // @desc    Update current user's profile
 // @route   PUT /api/auth/me
 const updateMe = async (req, res) => {
-    const allowedFields = ['full_name', 'phone', 'profession', 'blood_group',
-        'date_of_birth', 'medical_specialty', 'pharmacy_address',
+    const allowedFields = [
+        'full_name', 'phone', 'profession', 'blood_group', 'date_of_birth',
+        'medical_specialty', 'pharmacy_address',
         'vehicle_availability', 'medical_equipment', 'medical_fitness',
-        'availability_duration', 'disaster_knowledge'];
+        'availability_duration', 'disaster_knowledge'
+    ];
 
     const updates = {};
     allowedFields.forEach(field => {
@@ -157,17 +148,10 @@ const updateMe = async (req, res) => {
             .select();
 
         if (error) throw error;
-
         res.status(200).json(data[0]);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
 };
 
-module.exports = {
-    registerUser,
-    loginUser,
-    verifyOTP,
-    getMe,
-    updateMe
-};
+module.exports = { registerUser, loginUser, verifyOTP, getMe, updateMe };
