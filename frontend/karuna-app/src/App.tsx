@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import LoginPage from './LoginPage';
 
 // Lazy-load pages from sibling project folders
 const DoctorDashboardPage = lazy(() =>
@@ -130,9 +131,7 @@ const NavLink = ({ to, active, children }: { to: string; active: boolean; childr
     </Link>
 );
 
-// ── Temporary Home / Signup Page ──
-// (The main signup page uses Tailwind/MUI which needs its full project context. 
-//  This provides a simple link hub until the signup is integrated.)
+// ── Home Page ──
 const HomePage = () => {
     const isLoggedIn = !!localStorage.getItem('karuna_token');
     const role = localStorage.getItem('karuna_role') || '';
@@ -143,51 +142,8 @@ const HomePage = () => {
         if (role === 'volunteer') return <Navigate to="/volunteer/join" />;
     }
 
-    return (
-        <div style={{
-            maxWidth: 420, margin: '80px auto', padding: 32,
-            background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.06)'
-        }}>
-            <h1 style={{ fontSize: 28, fontWeight: 700, color: '#0d9488', marginBottom: 8, textAlign: 'center' }}>
-                Welcome to Karuna
-            </h1>
-            <p style={{ color: '#6B7280', textAlign: 'center', marginBottom: 24 }}>
-                Disaster Relief Coordination Platform
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <RoleLink to="/doctor/onboarding" emoji="🩺" label="I am a Doctor" />
-                <RoleLink to="/pharmacy/form" emoji="💊" label="I am a Pharmacy" />
-                <RoleLink to="/volunteer/join" emoji="🤝" label="I want to Volunteer" />
-            </div>
-
-            <div style={{ margin: '24px 0', borderTop: '1px solid #e5e7eb' }} />
-
-            <Link to="/help" style={{
-                display: 'block', padding: '14px', borderRadius: 10,
-                background: '#f59d62', color: '#fff', fontWeight: 600,
-                textDecoration: 'none', textAlign: 'center', fontSize: 16
-            }}>
-                🆘 I Need Emergency Help
-            </Link>
-        </div>
-    );
+    return <LoginPage />;
 };
-
-const RoleLink = ({ to, emoji, label }: { to: string; emoji: string; label: string }) => (
-    <Link to={to} style={{
-        display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px',
-        borderRadius: 10, border: '1px solid #e5e7eb', textDecoration: 'none',
-        color: '#111827', fontWeight: 500, fontSize: 15,
-        transition: 'all 0.2s'
-    }}
-        onMouseOver={e => { e.currentTarget.style.borderColor = '#0d9488'; e.currentTarget.style.background = '#f0fdfa'; }}
-        onMouseOut={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff'; }}
-    >
-        <span style={{ fontSize: 24 }}>{emoji}</span>
-        {label}
-    </Link>
-);
 
 // ── 404 ──
 const NotFound = () => (
@@ -207,6 +163,7 @@ export default function App() {
                 <Suspense fallback={<LoadingSpinner />}>
                     <Routes>
                         <Route path="/" element={<HomePage />} />
+                        <Route path="/login" element={<LoginPage />} />
 
                         {/* Doctor */}
                         <Route path="/doctor" element={<DoctorDashboardPage />} />
