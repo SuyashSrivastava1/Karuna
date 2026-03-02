@@ -1,5 +1,6 @@
-import React from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { Suspense, lazy } from 'react';
+import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import LoginPage from './LoginPage';
 
 // ── Import all the user-designed pages ────────────────────────────────────────
 import { SignupPage } from './components/SignupPage';
@@ -87,7 +88,33 @@ function Header() {
             </nav>
         </header>
     );
-}
+};
+
+const NavLink = ({ to, active, children }: { to: string; active: boolean; children: React.ReactNode }) => (
+    <Link to={to} style={{
+        padding: '6px 14px', borderRadius: 6, textDecoration: 'none', fontSize: 14, fontWeight: 500,
+        background: active ? '#0d948815' : 'transparent',
+        color: active ? '#0d9488' : '#374151',
+        border: active ? '1px solid #0d9488' : '1px solid transparent'
+    }}>
+        {children}
+    </Link>
+);
+
+// ── Home Page ──
+const HomePage = () => {
+    const isLoggedIn = !!localStorage.getItem('karuna_token');
+    const role = localStorage.getItem('karuna_role') || '';
+
+    if (isLoggedIn) {
+        if (role === 'doctor') return <Navigate to="/doctor" />;
+        if (role === 'pharmacy') return <Navigate to="/pharmacy" />;
+        // Default: volunteer or unknown role → volunteer join page
+        return <Navigate to="/volunteer/join" />;
+    }
+
+    return <LoginPage />;
+};
 
 // ── 404 ──
 const NotFound = () => (
@@ -104,10 +131,11 @@ export default function App() {
         <>
             <style>{`* { box-sizing: border-box; margin: 0; padding: 0; } body { font-family: 'Inter', -apple-system, sans-serif; background: ${C.bg}; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
             <Header />
-            <main>
-                <Routes>
-                    {/* Home — the user's Sign Up / Login page */}
-                    <Route path="/" element={<SignupPage />} />
+            <main style={{ minHeight: 'calc(100vh - 60px)' }}>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/login" element={<LoginPage />} />
 
                     {/* Join Site */}
                     <Route path="/join" element={<JoinSitePage />} />

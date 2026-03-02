@@ -155,7 +155,15 @@ export function VolunteerJoinPage() {
                                 ))}
                             </div>
                         )}
-                        <button style={{ width: "100%", padding: "12px 0", backgroundColor: currentRole.color, color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                        <button
+                            onClick={() => {
+                                const track = result?.track;
+                                if (track === "NURSE") window.location.href = "/nurse";
+                                else if (track === "DRIVER") window.location.href = "/driver";
+                                else window.location.href = "/";
+                            }}
+                            style={{ width: "100%", padding: "12px 0", backgroundColor: currentRole.color, color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+                        >
                             Go to My Workspace →
                         </button>
                     </div>

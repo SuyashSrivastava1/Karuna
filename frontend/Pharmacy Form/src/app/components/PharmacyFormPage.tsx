@@ -37,58 +37,10 @@ export function PharmacyFormPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(""); setLoading(true);
-        try {
-            // Register as pharmacy
-            const reg = await fetch(`${API}/auth/register`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: form.email.trim(),
-                    full_name: form.fullName.trim(),
-                    phone: form.phone.replace(/\s/g, "") || undefined,
-                    role: "pharmacy",
-                    pharmacy_address: form.address.trim(),
-                    date_of_birth: form.dob || undefined,
-                }),
-            });
-            const regData = await reg.json();
-            if (!reg.ok && !regData.message?.includes("already registered") && !regData.message?.includes("already exists")) {
-                throw new Error(regData.message || "Registration failed");
-            }
-            // Send OTP
-            const otpRes = await fetch(`${API}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: form.email.trim() }),
-            });
-            const otpData = await otpRes.json();
-            if (!otpRes.ok) throw new Error(otpData.message || "Failed to send OTP");
-            setStep("otp");
-        } catch (err: unknown) {
-            setError((err as Error).message);
-        } finally { setLoading(false); }
-    };
-
-    const handleVerify = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(""); setLoading(true);
-        try {
-            const res = await fetch(`${API}/auth/verify-otp`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: form.email.trim(), token: otp }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Invalid OTP");
-            localStorage.setItem("karuna_token", data.access_token);
-            localStorage.setItem("karuna_role", data.user?.role || "pharmacy");
-            localStorage.setItem("karuna_user_name", data.user?.full_name || form.fullName);
-            setStep("done");
-            setTimeout(() => { window.location.href = "http://localhost:5180"; }, 2000);
-        } catch (err: unknown) {
-            setError((err as Error).message);
-        } finally { setLoading(false); }
+        setSubmitted(true);
+        setTimeout(() => {
+            window.location.href = "/pharmacy";
+        }, 1500);
     };
 
     return (

@@ -43,24 +43,10 @@ export function DoctorOnboardingPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(""); setLoading(true);
-        try {
-            const res = await fetch(`${API}/auth/me`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                body: JSON.stringify({
-                    date_of_birth: dob || undefined,
-                    blood_group: bloodGroup || undefined,
-                    medical_specialty: specialty,
-                }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Failed to save profile");
-            setDone(true);
-            setTimeout(() => { window.location.href = "http://localhost:5181"; }, 2000);
-        } catch (err: unknown) {
-            setError((err as Error).message);
-        } finally { setLoading(false); }
+        setSubmitted(true);
+        setTimeout(() => {
+            window.location.href = "/doctor";
+        }, 1500);
     };
 
     return (
