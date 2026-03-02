@@ -10,7 +10,7 @@ const C = {
     text: '#111827', muted: '#6B7280', border: '#E5E7EB',
 };
 
-type Step = 'choose' | 'login' | 'register' | 'otp';
+type Step = 'choose' | 'login' | 'register';
 
 const inputStyle: React.CSSProperties = {
     width: '100%', padding: '12px 16px', border: `1px solid ${C.border}`,
@@ -27,17 +27,20 @@ const btnStyle: React.CSSProperties = {
 
 export default function LoginPage() {
     const [step, setStep] = useState<Step>('choose');
-    const [phone, setPhone] = useState('');
-    const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    // Login fields
+    const [loginEmail, setLoginEmail] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
+
     // Register fields
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
-    const [role, setRole] = useState('');
+    const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
+    const [role, setRole] = useState('');
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -46,28 +49,10 @@ export default function LoginPage() {
             const res = await fetch(`${API_BASE}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone: phone.trim() }),
+                body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) throw new Error(data.message || 'Login failed');
-            setSuccess('OTP sent to your phone!');
-            setStep('otp');
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Login failed');
-        } finally { setLoading(false); }
-    };
-
-    const handleVerifyOtp = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(''); setLoading(true);
-        try {
-            const res = await fetch(`${API_BASE}/auth/verify-otp`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone: phone.trim(), token: otp.trim() }),
-            });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.message || 'OTP verification failed');
 
             // Store authentication
             if (data.session?.access_token) {
@@ -76,27 +61,17 @@ export default function LoginPage() {
             if (data.user?.id) {
                 localStorage.setItem('karuna_user_id', data.user.id);
             }
+            // Store role — default to 'volunteer' if profile is missing
+            const userRole = data.profile?.role || 'volunteer';
+            localStorage.setItem('karuna_role', userRole);
+            localStorage.setItem('karuna_user_name', data.profile?.full_name || '');
 
-            // Fetch user profile to get role
-            const token = data.session?.access_token;
-            if (token) {
-                const meRes = await fetch(`${API_BASE}/auth/me`, {
-                    headers: { 'Authorization': `Bearer ${token}` },
-                });
-                const profile = await meRes.json().catch(() => ({}));
-                if (profile.role) {
-                    localStorage.setItem('karuna_role', profile.role);
-                    localStorage.setItem('karuna_user_name', profile.full_name || '');
-                }
-
-                // Redirect based on role
-                if (profile.role === 'doctor') window.location.href = '/doctor';
-                else if (profile.role === 'pharmacy') window.location.href = '/pharmacy';
-                else if (profile.role === 'volunteer') window.location.href = '/volunteer/join';
-                else window.location.href = '/';
-            }
+            // Redirect based on role
+            if (userRole === 'doctor') window.location.href = '/doctor';
+            else if (userRole === 'pharmacy') window.location.href = '/pharmacy';
+            else window.location.href = '/volunteer/join';
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'OTP verification failed');
+            setError(err instanceof Error ? err.message : 'Login failed');
         } finally { setLoading(false); }
     };
 
@@ -109,7 +84,7 @@ export default function LoginPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     phone: phone.trim(), full_name: fullName.trim(),
-                    email: email.trim(), role, password: password || phone.trim(),
+                    email: email.trim(), role, password: password,
                 }),
             });
             const data = await res.json().catch(() => ({}));
@@ -122,14 +97,40 @@ export default function LoginPage() {
                 localStorage.setItem('karuna_user_name', fullName.trim());
                 if (data.user?.id) localStorage.setItem('karuna_user_id', data.user.id);
 
-                // Redirect to onboarding flow based on role
                 if (role === 'doctor') window.location.href = '/doctor/onboarding';
                 else if (role === 'pharmacy') window.location.href = '/pharmacy/form';
                 else if (role === 'volunteer') window.location.href = '/volunteer/join';
                 else window.location.href = '/';
             } else {
-                setSuccess('Account created! You can now log in.');
-                setStep('login');
+                // Supabase may require email verification — auto-login with the password
+                setSuccess('Account created! Logging you in…');
+                try {
+                    const loginRes = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email.trim(), password }),
+                    });
+                    const loginData = await loginRes.json().catch(() => ({}));
+                    if (loginRes.ok && loginData.session?.access_token) {
+                        localStorage.setItem('karuna_token', loginData.session.access_token);
+                        localStorage.setItem('karuna_role', role);
+                        localStorage.setItem('karuna_user_name', fullName.trim());
+                        if (loginData.user?.id) localStorage.setItem('karuna_user_id', loginData.user.id);
+
+                        if (role === 'doctor') window.location.href = '/doctor/onboarding';
+                        else if (role === 'pharmacy') window.location.href = '/pharmacy/form';
+                        else if (role === 'volunteer') window.location.href = '/volunteer/join';
+                        else window.location.href = '/';
+                    } else {
+                        setSuccess('Account created! Please check your email to verify, then log in.');
+                        setStep('login');
+                        setLoginEmail(email.trim());
+                    }
+                } catch {
+                    setSuccess('Account created! Please log in with your email and password.');
+                    setStep('login');
+                    setLoginEmail(email.trim());
+                }
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Registration failed');
@@ -158,7 +159,6 @@ export default function LoginPage() {
                 <p style={{ color: C.muted, fontSize: 14 }}>Disaster Relief Coordination</p>
             </div>
 
-            {/* Error / Success messages */}
             {error && (
                 <div style={{
                     padding: '10px 14px', backgroundColor: '#FEF2F2', border: `1px solid ${C.danger}`,
@@ -191,47 +191,38 @@ export default function LoginPage() {
                 </div>
             )}
 
-            {/* Step: Login with phone */}
+            {/* Step: Login with email + password */}
             {step === 'login' && (
                 <form onSubmit={handleLogin}>
-                    <label style={{
-                        display: 'block', fontSize: 11, fontWeight: 600, color: C.muted,
-                        letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 8
-                    }}>Phone Number</label>
-                    <input style={inputStyle} type="tel" placeholder="+91 XXXXX XXXXX" value={phone}
-                        onChange={e => setPhone(e.target.value)} required autoFocus
-                        onFocus={e => e.target.style.borderColor = C.primary}
-                        onBlur={e => e.target.style.borderColor = C.border} />
+                    <div style={{ marginBottom: 14 }}>
+                        <label style={{
+                            display: 'block', fontSize: 11, fontWeight: 600, color: C.muted,
+                            letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 8
+                        }}>Email</label>
+                        <input style={inputStyle} type="email" placeholder="you@example.com" value={loginEmail}
+                            onChange={e => setLoginEmail(e.target.value)} required autoFocus
+                            onFocus={e => e.target.style.borderColor = C.primary}
+                            onBlur={e => e.target.style.borderColor = C.border} />
+                    </div>
+                    <div style={{ marginBottom: 4 }}>
+                        <label style={{
+                            display: 'block', fontSize: 11, fontWeight: 600, color: C.muted,
+                            letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 8
+                        }}>Password</label>
+                        <input style={inputStyle} type="password" placeholder="••••••••" value={loginPassword}
+                            onChange={e => setLoginPassword(e.target.value)} required
+                            onFocus={e => e.target.style.borderColor = C.primary}
+                            onBlur={e => e.target.style.borderColor = C.border} />
+                    </div>
                     <button type="submit" disabled={loading}
                         style={{ ...btnStyle, marginTop: 16, opacity: loading ? 0.7 : 1 }}>
-                        {loading ? 'Sending OTP…' : 'Send OTP →'}
+                        {loading ? 'Logging in…' : 'Log In →'}
                     </button>
                     <button type="button" onClick={() => setStep('choose')}
                         style={{
                             width: '100%', marginTop: 10, padding: '10px', background: 'none',
                             border: 'none', color: C.muted, cursor: 'pointer', fontSize: 13
                         }}>← Back</button>
-                </form>
-            )}
-
-            {/* Step: OTP verification */}
-            {step === 'otp' && (
-                <form onSubmit={handleVerifyOtp}>
-                    <p style={{ fontSize: 13, color: C.muted, marginBottom: 16 }}>Enter the 6-digit OTP sent to <b>{phone}</b></p>
-                    <input style={{ ...inputStyle, textAlign: 'center', fontSize: 24, letterSpacing: '0.5em', fontWeight: 700 }}
-                        type="text" maxLength={6} placeholder="• • • • • •" value={otp}
-                        onChange={e => setOtp(e.target.value.replace(/\D/g, ''))} required autoFocus
-                        onFocus={e => e.target.style.borderColor = C.primary}
-                        onBlur={e => e.target.style.borderColor = C.border} />
-                    <button type="submit" disabled={loading || otp.length !== 6}
-                        style={{ ...btnStyle, marginTop: 16, opacity: loading || otp.length !== 6 ? 0.7 : 1 }}>
-                        {loading ? 'Verifying…' : 'Verify & Login →'}
-                    </button>
-                    <button type="button" onClick={() => { setStep('login'); setOtp(''); setError(''); }}
-                        style={{
-                            width: '100%', marginTop: 10, padding: '10px', background: 'none',
-                            border: 'none', color: C.muted, cursor: 'pointer', fontSize: 13
-                        }}>← Change Phone Number</button>
                 </form>
             )}
 
@@ -256,7 +247,19 @@ export default function LoginPage() {
                                 display: 'block', fontSize: 11, fontWeight: 600, color: C.muted,
                                 letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 6
                             }}>
-                                Phone Number <span style={{ color: C.danger }}>*</span>
+                                Email <span style={{ color: C.danger }}>*</span>
+                            </label>
+                            <input style={inputStyle} type="email" placeholder="you@example.com" value={email}
+                                onChange={e => setEmail(e.target.value)} required
+                                onFocus={e => e.target.style.borderColor = C.primary}
+                                onBlur={e => e.target.style.borderColor = C.border} />
+                        </div>
+                        <div>
+                            <label style={{
+                                display: 'block', fontSize: 11, fontWeight: 600, color: C.muted,
+                                letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 6
+                            }}>
+                                Phone <span style={{ color: C.danger }}>*</span>
                             </label>
                             <input style={inputStyle} type="tel" placeholder="+91 XXXXX XXXXX" value={phone}
                                 onChange={e => setPhone(e.target.value)} required
@@ -268,22 +271,10 @@ export default function LoginPage() {
                                 display: 'block', fontSize: 11, fontWeight: 600, color: C.muted,
                                 letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 6
                             }}>
-                                Email <span style={{ color: C.muted, fontWeight: 400, fontSize: 11 }}>(optional)</span>
+                                Password <span style={{ color: C.danger }}>*</span>
                             </label>
-                            <input style={inputStyle} type="email" placeholder="you@example.com" value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                onFocus={e => e.target.style.borderColor = C.primary}
-                                onBlur={e => e.target.style.borderColor = C.border} />
-                        </div>
-                        <div>
-                            <label style={{
-                                display: 'block', fontSize: 11, fontWeight: 600, color: C.muted,
-                                letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 6
-                            }}>
-                                Password <span style={{ color: C.muted, fontWeight: 400, fontSize: 11 }}>(optional — defaults to phone)</span>
-                            </label>
-                            <input style={inputStyle} type="password" placeholder="••••••••" value={password}
-                                onChange={e => setPassword(e.target.value)}
+                            <input style={inputStyle} type="password" placeholder="Min 6 characters" value={password}
+                                onChange={e => setPassword(e.target.value)} required minLength={6}
                                 onFocus={e => e.target.style.borderColor = C.primary}
                                 onBlur={e => e.target.style.borderColor = C.border} />
                         </div>
@@ -313,7 +304,7 @@ export default function LoginPage() {
                 </form>
             )}
 
-            {/* Footer link */}
+            {/* Footer links */}
             {step === 'login' && (
                 <p style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: C.muted }}>
                     Don't have an account?{' '}

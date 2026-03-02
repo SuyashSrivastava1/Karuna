@@ -139,7 +139,8 @@ const HomePage = () => {
     if (isLoggedIn) {
         if (role === 'doctor') return <Navigate to="/doctor" />;
         if (role === 'pharmacy') return <Navigate to="/pharmacy" />;
-        if (role === 'volunteer') return <Navigate to="/volunteer/join" />;
+        // Default: volunteer or unknown role → volunteer join page
+        return <Navigate to="/volunteer/join" />;
     }
 
     return <LoginPage />;

@@ -102,13 +102,13 @@ const registerUser = async (req, res) => {
     }
 };
 
-// @desc    Login user — sends OTP to email
+// @desc    Login user with email + password
 // @route   POST /api/auth/login
 const loginUser = async (req, res) => {
-    const { email } = req.body;
+    const { email, password } = req.body;
 
-    if (!email) {
-        return res.status(400).json({ message: 'email is required' });
+    if (!email || !password) {
+        return res.status(400).json({ message: 'email and password are required' });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -117,17 +117,38 @@ const loginUser = async (req, res) => {
     }
 
     try {
-        const { data, error } = await supabase.auth.signInWithOtp({
-            email: email.trim().toLowerCase()
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email.trim().toLowerCase(),
+            password
         });
         if (error) throw error;
-        res.status(200).json({ message: 'OTP sent to your email address', data });
+
+        // Fetch user profile for role info
+        let profile = null;
+        if (data.user) {
+            const { data: profileData } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', data.user.id)
+                .single();
+            profile = profileData;
+        }
+
+        res.status(200).json({
+            message: 'Login successful',
+            user: data.user,
+            session: data.session,
+            profile
+        });
     } catch (error) {
+        if (error.message && error.message.includes('Invalid login credentials')) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
         res.status(400).json({ message: error.message });
     }
 };
 
-// @desc    Verify email OTP
+// @desc    Verify email OTP (kept for backward compatibility)
 // @route   POST /api/auth/verify-otp
 const verifyOTP = async (req, res) => {
     const { email, token } = req.body;
@@ -136,7 +157,6 @@ const verifyOTP = async (req, res) => {
         return res.status(400).json({ message: 'email and token are required' });
     }
 
-    // Validate OTP format (6 digits)
     if (!/^\d{6}$/.test(token)) {
         return res.status(400).json({ message: 'OTP must be exactly 6 digits' });
     }
