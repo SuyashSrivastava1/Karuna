@@ -14,6 +14,7 @@ import { PharmacyDashboardPage } from './components/PharmacyDashboardPage';
 import { DoctorDashboardPage } from './components/DoctorDashboardPage';
 import { JoinSitePage } from './components/JoinSitePage';
 import { AdminBypassPage } from './components/AdminBypassPage';
+import { VolunteerDashboardPage } from './components/VolunteerDashboardPage';
 import DriverActivePage from './DriverActivePage';
 
 // ── Design Tokens ─────────────────────────────────────────────────────────────
@@ -236,6 +237,7 @@ export default function App() {
 
                         {/* Volunteer flow */}
                         <Route path="/volunteer/join" element={<VolunteerJoinPage />} />
+                        <Route path="/volunteer/dashboard" element={<VolunteerDashboardPage />} />
                         <Route path="/nurse" element={<NursePage />} />
                         <Route path="/driver" element={<DriverUIPage />} />
                         <Route path="/driver/active" element={<DriverActivePage />} />
