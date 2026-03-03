@@ -155,7 +155,7 @@ export default function LoginPage() {
             background: C.card, borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
         }}>
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
-                <h1 style={{ fontSize: 26, fontWeight: 800, color: C.primary, margin: '0 0 4px' }}>🏥 Karuna</h1>
+                <img src="/logo.png" alt="Karuna" style={{ height: 48, width: 'auto', marginBottom: 4 }} />
                 <p style={{ color: C.muted, fontSize: 14 }}>Disaster Relief Coordination</p>
             </div>
 
