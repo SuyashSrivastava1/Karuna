@@ -60,12 +60,34 @@ function Header() {
             {/* ── Left: Logo + Nav Tabs ── */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
                 <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-                    <span style={{ fontSize: 22, fontWeight: 800, color: C.primary, letterSpacing: '-0.02em' }}>🏥 Karuna</span>
+                    <img src="/logo.png" alt="Karuna" style={{ height: 32, width: 'auto', borderRadius: 6 }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#22C55E', boxShadow: '0 0 0 2px #22C55E44' }} />
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#22C55E' }}>Online</span>
+                    </div>
                 </Link>
                 <nav style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                     <HeaderTab to="/help" label="💬 Helping Chat Bot" active={loc.pathname === '/help'} />
                     <HeaderTab to="/donate" label="❤️ Donate" active={loc.pathname === '/donate'} />
                 </nav>
+            </div>
+
+            {/* ── Center: Emergency + Volunteer ── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, backgroundColor: '#EF444412', borderRadius: 8, padding: '4px 10px', border: '1px solid #EF444433' }}>
+                    <span style={{ fontSize: 14 }}>📞</span>
+                    <div>
+                        <p style={{ fontSize: 9, fontWeight: 600, color: '#EF4444', letterSpacing: '0.06em', margin: 0 }}>EMERGENCY</p>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#EF4444', margin: 0 }}>112 · 108 · 1078</p>
+                    </div>
+                </div>
+                <a href="tel:1098" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', gap: 6, backgroundColor: '#4F46E512', borderRadius: 8, padding: '4px 10px', border: '1px solid #4F46E533', transition: 'background 0.15s' }}>
+                    <span style={{ fontSize: 14 }}>🤝</span>
+                    <div>
+                        <p style={{ fontSize: 9, fontWeight: 600, color: '#4F46E5', letterSpacing: '0.06em', margin: 0 }}>VOLUNTEER</p>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#4F46E5', margin: 0 }}>Call Now</p>
+                    </div>
+                </a>
             </div>
 
             {/* ── Right: Auth / Profile ── */}

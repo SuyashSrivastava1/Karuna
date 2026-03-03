@@ -224,24 +224,8 @@ export function NursePage() {
     return (
         <div style={{ fontFamily: "'Inter', sans-serif", backgroundColor: C.bg, minHeight: "100vh" }}>
 
-            {/* ── Navbar ── */}
-            <nav style={{ backgroundColor: C.card, borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50 }}>
-                <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-                        <img src="/logo.png" alt="Karuna" style={{ height: 32, width: "auto", borderRadius: 6 }} />
-                    </a>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <a href="tel:112" style={{ backgroundColor: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer", textDecoration: "none" }}
-                            onMouseEnter={e => (e.currentTarget.style.backgroundColor = C.accentHover)}
-                            onMouseLeave={e => (e.currentTarget.style.backgroundColor = C.accent)}
-                        >🆘 Help Me</a>
-                        <button style={{ backgroundColor: C.secondary, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
-                            onMouseEnter={e => (e.currentTarget.style.backgroundColor = C.primary)}
-                            onMouseLeave={e => (e.currentTarget.style.backgroundColor = C.secondary)}
-                        >Donate</button>
-                    </div>
-                </div>
-            </nav>
+
+
 
             {/* ── Page Content ── */}
             <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px 16px 100px" }}>

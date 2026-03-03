@@ -137,41 +137,8 @@ export function ChatbotPage() {
     return (
         <div style={{ fontFamily: "'Inter', sans-serif", backgroundColor: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column" }}>
 
-            {/* ── Header ── */}
-            <nav style={{ backgroundColor: C.card, borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
-                <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 12 }}>
-                        <img src="/logo.png" alt="Karuna" style={{ height: 32, width: "auto", borderRadius: 6 }} />
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: C.success, boxShadow: `0 0 0 2px ${C.success}44`, animation: "pulse 2s infinite" }} />
-                            <span style={{ fontSize: 13, fontWeight: 600, color: C.success }}>Online</span>
-                        </div>
-                    </a>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        {/* Emergency box */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, backgroundColor: `${C.danger}12`, borderRadius: 8, padding: "6px 12px", border: `1px solid ${C.danger}33` }}>
-                            <span style={{ fontSize: 16 }}>📞</span>
-                            <div>
-                                <p style={{ fontSize: 10, fontWeight: 600, color: C.danger, letterSpacing: "0.06em", margin: 0 }}>EMERGENCY</p>
-                                <p style={{ fontSize: 13, fontWeight: 700, color: C.danger, margin: 0 }}>112 · 108 · 1078</p>
-                            </div>
-                        </div>
-                        {/* Volunteer connect box — same style as emergency, now a direct tel: CTA */}
-                        <a
-                            href="tel:1098"
-                            style={{ display: "flex", alignItems: "center", textDecoration: "none", gap: 6, backgroundColor: `${C.primary}12`, borderRadius: 8, padding: "6px 12px", border: `1px solid ${C.primary}33`, cursor: "pointer", transition: "background 0.15s" }}
-                            onMouseEnter={e => (e.currentTarget.style.backgroundColor = `${C.primary}22`)}
-                            onMouseLeave={e => (e.currentTarget.style.backgroundColor = `${C.primary}12`)}
-                        >
-                            <span style={{ fontSize: 16 }}>🤝</span>
-                            <div>
-                                <p style={{ fontSize: 10, fontWeight: 600, color: C.primary, letterSpacing: "0.06em", margin: 0 }}>VOLUNTEER</p>
-                                <p style={{ fontSize: 13, fontWeight: 700, color: C.primary, margin: 0 }}>Call Now</p>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </nav>
+
+
 
             {/* Nearest site banner with Google Maps link */}
             {

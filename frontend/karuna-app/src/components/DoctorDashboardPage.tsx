@@ -123,18 +123,8 @@ export function DoctorDashboardPage() {
     return (
         <div style={{ fontFamily: "'Inter', sans-serif", backgroundColor: C.bg, minHeight: "100vh" }}>
 
-            {/* Nav */}
-            <nav style={{ backgroundColor: C.card, borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50 }}>
-                <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-                        <img src="/logo.png" alt="Karuna" style={{ height: 32, width: "auto", borderRadius: 6 }} />
-                    </a>
-                    <div style={{ display: "flex", gap: 8 }}>
-                        <a href="tel:112" style={{ textDecoration: "none", backgroundColor: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>🆘 Help Me</a>
-                        <button onClick={() => window.location.href = '/donate'} style={{ backgroundColor: C.secondary, color: "#fff", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Donate</button>
-                    </div>
-                </div>
-            </nav>
+
+
 
             <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px 16px 56px" }}>
 

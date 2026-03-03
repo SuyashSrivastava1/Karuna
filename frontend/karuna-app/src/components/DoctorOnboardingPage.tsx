@@ -131,18 +131,8 @@ export function DoctorOnboardingPage() {
     return (
         <div style={{ fontFamily: "'Inter', sans-serif", backgroundColor: C.bg, minHeight: "100vh" }}>
 
-            {/* Nav */}
-            <nav style={{ backgroundColor: C.card, borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50 }}>
-                <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-                        <img src="/logo.png" alt="Karuna" style={{ height: 32, width: "auto", borderRadius: 6 }} />
-                    </a>
-                    <div>
-                        <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.07em", textTransform: "uppercase", margin: 0 }}>Setup</p>
-                        <p style={{ fontSize: 15, fontWeight: 700, color: C.text, margin: 0 }}>Doctor Registration</p>
-                    </div>
-                </div>
-            </nav>
+
+
 
             <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px 16px 56px" }}>
                 <div style={{ marginBottom: 20 }}>
