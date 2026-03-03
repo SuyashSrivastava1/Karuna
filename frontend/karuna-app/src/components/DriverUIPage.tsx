@@ -1,8 +1,4 @@
-import { useState, useEffect } from "react";
-
-// API Config
-const API_BASE = "http://localhost:5000/api";
-const getToken = () => localStorage.getItem("karuna_token");
+import { useState } from "react";
 
 const C = {
     primary: "#4F46E5", primaryHover: "#4338CA", secondary: "#6366F1",
@@ -11,182 +7,237 @@ const C = {
     text: "#111827", muted: "#6B7280", border: "#E5E7EB",
 };
 
-interface Task {
+// ── Vehicle Icons ─────────────────────────────────────────────────────────────
+const VEHICLE_ICONS: Record<string, string> = {
+    car: "🚗", truck: "🚚", bike: "🏍️", van: "🚐", auto: "🛺",
+};
+
+// ── Simulated task data ───────────────────────────────────────────────────────
+interface DeliveryTask {
     id: string;
     location: string;
+    destination: string;
     eta: string;
-    deliverTo: string;
-    priority: "urgent" | "normal";
-    status: "Pending" | "Accepted" | "Fulfilled";
+    urgency: "critical" | "high" | "moderate";
+    items: string;
 }
 
+const MANDATORY_TASK: DeliveryTask = {
+    id: "m1",
+    location: "Central Pharmacy, 456 Elm Street, Sector 7",
+    destination: "Camp B — General Hospital Relief Zone",
+    eta: "15 mins",
+    urgency: "critical",
+    items: "Insulin x2, Saline 500ml x3",
+};
+
+const AVAILABLE_TASKS: DeliveryTask[] = [
+    { id: "t1", location: "City Hospital Pharmacy", destination: "Relief Camp A", eta: "8 mins", urgency: "critical", items: "Oxygen Cylinders x2" },
+    { id: "t2", location: "MedPlus, Ring Road", destination: "Shelter B", eta: "12 mins", urgency: "high", items: "Bandages x20, Antiseptic x5" },
+    { id: "t3", location: "Apollo Pharmacy, Sector 5", destination: "Camp C", eta: "20 mins", urgency: "moderate", items: "ORS Packets x50" },
+    { id: "t4", location: "District Medical Store", destination: "Camp D", eta: "25 mins", urgency: "high", items: "Paracetamol x100" },
+    { id: "t5", location: "Jan Aushadhi, Main Rd", destination: "Shelter E", eta: "18 mins", urgency: "critical", items: "IV Drips x10" },
+    { id: "t6", location: "Wellness Pharmacy", destination: "Camp F", eta: "30 mins", urgency: "moderate", items: "Vitamins, Electrolytes" },
+];
+
+const urgencyConfig = (u: DeliveryTask["urgency"]) => ({
+    critical: { color: C.danger, border: "#EF4444", glow: "0 0 12px #EF444444", label: "🔴 Critical", bg: `${C.danger}10` },
+    high: { color: C.warning, border: "#F59E0B", glow: "0 0 12px #F59E0B44", label: "🟡 High", bg: `${C.warning}10` },
+    moderate: { color: C.success, border: "#22C55E", glow: "0 0 12px #22C55E44", label: "🟢 Moderate", bg: `${C.success}10` },
+}[u]);
+
+// ── Main Driver UI ────────────────────────────────────────────────────────────
 export function DriverUIPage() {
-    const [isOnline, setIsOnline] = useState(false);
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [activeTask, setActiveTask] = useState<Task | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [mode, setMode] = useState<"mandatory" | "choice">("mandatory");
+    const [selectedTask, setSelectedTask] = useState<DeliveryTask | null>(null);
+    const vehicleType = localStorage.getItem("karuna_vehicle") || "car";
+    const vehicleIcon = VEHICLE_ICONS[vehicleType] || "🚗";
 
-    useEffect(() => {
-        const fetchTasks = async () => {
-            try {
-                const res = await fetch(`${API_BASE}/driver/tasks`, {
-                    headers: { "Authorization": `Bearer ${getToken()}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setTasks(data);
-                    const active = data.find((t: Task) => t.status === "Pending" || t.status === "Accepted");
-                    setActiveTask(active || null);
-                }
-            } catch (err) {
-                console.error("Failed to fetch tasks", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchTasks();
-    }, []);
-
-    const toggleStatus = async () => {
-        const newStatus = !isOnline;
-        setIsOnline(newStatus);
-        try {
-            await fetch(`${API_BASE}/driver/status`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
-                body: JSON.stringify({ status: newStatus ? "online" : "offline" })
-            });
-        } catch (err) {
-            console.error("Failed to update status", err);
-        }
+    const handleConfirm = () => {
+        window.location.href = "/driver/active";
     };
 
-    const handleAccept = (task: Task) => {
-        setActiveTask({ ...task, status: "Accepted" });
-        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: "Accepted" } : t));
-        setTimeout(() => {
-            window.open(`https://maps.google.com/?q=${encodeURIComponent(task.location)}`, "_blank");
-        }, 800);
+    const handleVolunteer = (task: DeliveryTask) => {
+        setSelectedTask(task);
+        setMode("mandatory");
     };
 
-    const handleComplete = (task: Task) => {
-        setActiveTask(null);
-        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: "Fulfilled" } : t));
-    };
-
-    const historyTasks = tasks.filter(t => t.status === "Fulfilled");
+    const activeTask = selectedTask || MANDATORY_TASK;
 
     return (
         <div style={{ fontFamily: "'Inter', sans-serif", backgroundColor: C.bg, minHeight: "100vh" }}>
+            <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px 56px" }}>
 
-            {/* Nav */}
-            <nav style={{ backgroundColor: C.card, borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50 }}>
-                <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-                        <img src="/logo.png" alt="Karuna" style={{ height: 32, width: "auto", borderRadius: 6 }} />
-                    </a>
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>{isOnline ? "Online" : "Offline"}</span>
-                        <div
-                            onClick={toggleStatus}
-                            style={{
-                                width: 44, height: 24, borderRadius: 12,
-                                backgroundColor: isOnline ? C.success : C.border,
-                                cursor: "pointer", position: "relative", transition: "background 0.2s"
-                            }}>
-                            <div style={{
-                                width: 20, height: 20, borderRadius: "50%", backgroundColor: "#fff",
-                                position: "absolute", top: 2, left: isOnline ? 22 : 2,
-                                transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
-                            }} />
-                        </div>
-                    </div>
+                {/* Mode Toggle */}
+                <div style={{ display: "flex", gap: 4, marginBottom: 20, background: "#fff", borderRadius: 10, border: `1px solid ${C.border}`, padding: 4, width: "fit-content" }}>
+                    <button onClick={() => setMode("mandatory")} style={{
+                        padding: "8px 18px", borderRadius: 8, border: "none", cursor: "pointer",
+                        fontSize: 13, fontWeight: 700, transition: "all 0.15s",
+                        background: mode === "mandatory" ? C.primary : "transparent",
+                        color: mode === "mandatory" ? "#fff" : C.muted,
+                    }}>📋 Mandatory Delivery</button>
+                    <button onClick={() => { setMode("choice"); setSelectedTask(null); }} style={{
+                        padding: "8px 18px", borderRadius: 8, border: "none", cursor: "pointer",
+                        fontSize: 13, fontWeight: 700, transition: "all 0.15s",
+                        background: mode === "choice" ? C.primary : "transparent",
+                        color: mode === "choice" ? "#fff" : C.muted,
+                    }}>🗂️ Choose a Task</button>
                 </div>
-            </nav>
 
-            <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px 16px 56px" }}>
+                {/* ═══ MODE A: MANDATORY DELIVERY ═══ */}
+                {mode === "mandatory" && (
+                    <>
+                        {/* Mandatory Banner */}
+                        <div style={{
+                            background: "linear-gradient(90deg, #fdf2f8, #fce7f3)", border: "1.5px solid #f9a8d4",
+                            borderRadius: 12, padding: "12px 18px", marginBottom: 20,
+                            display: "flex", alignItems: "center", gap: 12,
+                        }}>
+                            <span style={{ fontSize: 20 }}>⚠️</span>
+                            <div>
+                                <p style={{ fontSize: 13, fontWeight: 700, color: "#be185d", margin: 0 }}>Showing mandatory delivery</p>
+                                <p style={{ fontSize: 12, color: "#9d174d", margin: 0, opacity: 0.8 }}>This task has been directly assigned to you by the system.</p>
+                            </div>
+                        </div>
 
-                {!isOnline ? (
-                    <div style={{ textAlign: "center", padding: "40px 20px", backgroundColor: C.card, borderRadius: 14, border: `1px solid ${C.border}` }}>
-                        <div style={{ fontSize: 48, marginBottom: 16 }}>😴</div>
-                        <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 8 }}>You are offline</h2>
-                        <p style={{ fontSize: 14, color: C.muted, margin: 0 }}>Toggle your status to online to start receiving delivery tasks.</p>
-                    </div>
-                ) : (
+                        {/* Header with vehicle icon */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                            <div style={{
+                                width: 48, height: 48, borderRadius: 12, background: `${C.primary}12`,
+                                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28,
+                            }}>{vehicleIcon}</div>
+                            <div>
+                                <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase", margin: 0 }}>Delivery Tasks</p>
+                                <h1 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: 0 }}>Your Assigned Delivery</h1>
+                            </div>
+                        </div>
+
+                        {/* Task Card */}
+                        <div style={{ background: C.card, borderRadius: 16, border: `1px solid ${C.border}`, boxShadow: "0 2px 16px rgba(0,0,0,0.06)", overflow: "hidden", maxWidth: 480 }}>
+                            <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+                                {/* Pickup Location */}
+                                <div>
+                                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>📍 Location to Pickup</label>
+                                    <div style={{
+                                        display: "flex", alignItems: "center", gap: 8, padding: "12px 14px",
+                                        background: "#f3f4f6", borderRadius: 10, border: `1px solid ${C.border}`,
+                                    }}>
+                                        <span style={{ flex: 1, fontSize: 14, color: C.text }}>{activeTask.location}</span>
+                                        <button onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(activeTask.location)}`, "_blank")}
+                                            style={{
+                                                padding: "4px 10px", borderRadius: 6, border: `1px solid ${C.primary}`,
+                                                background: `${C.primary}10`, color: C.primary, fontSize: 11, fontWeight: 700,
+                                                cursor: "pointer", flexShrink: 0,
+                                            }}>🗺️ map</button>
+                                    </div>
+                                    <p style={{ fontSize: 10, color: C.muted, marginTop: 4, fontStyle: "italic" }}>Route preview only — not turn-by-turn navigation</p>
+                                </div>
+
+                                {/* ETA */}
+                                <div>
+                                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>⏱️ Estimated Time</label>
+                                    <div style={{
+                                        padding: "12px 14px", background: "#f3f4f6", borderRadius: 10,
+                                        border: `1px solid ${C.border}`, fontWeight: 800, fontSize: 20, color: C.text,
+                                    }}>{activeTask.eta}</div>
+                                </div>
+
+                                {/* Deliver To */}
+                                <div>
+                                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6 }}>🏥 Deliver To</label>
+                                    <div style={{
+                                        padding: "12px 14px", background: "#f3f4f6", borderRadius: 10,
+                                        border: `1px solid ${C.border}`, fontSize: 14, color: C.text,
+                                    }}>{activeTask.destination}</div>
+                                </div>
+                            </div>
+
+                            {/* Confirm CTA */}
+                            <div style={{ padding: "16px 24px", borderTop: `1px solid ${C.border}`, background: `${C.primary}06` }}>
+                                <button onClick={handleConfirm} style={{
+                                    width: "100%", padding: "14px 0", borderRadius: 12, border: "none",
+                                    background: C.primary, color: "#fff", fontSize: 16, fontWeight: 800,
+                                    cursor: "pointer", transition: "all 0.15s",
+                                    boxShadow: `0 4px 20px ${C.primary}44`,
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = C.primaryHover)}
+                                    onMouseLeave={e => (e.currentTarget.style.background = C.primary)}
+                                >{vehicleIcon} Confirm & Start Navigation →</button>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* ═══ MODE B: MULTIPLE CHOICES ═══ */}
+                {mode === "choice" && (
                     <>
                         <div style={{ marginBottom: 20 }}>
-                            <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Driver Dispatch</p>
-                            <h1 style={{ fontSize: 22, fontWeight: 800, color: C.text }}>🚗 Active Task</h1>
+                            <h1 style={{ fontSize: 22, fontWeight: 800, color: C.text, marginBottom: 4 }}>🗂️ Available Tasks</h1>
+                            <p style={{ fontSize: 13, color: C.muted }}>Sorted by descending urgency — pick one to volunteer</p>
                         </div>
 
-                        {loading ? (
-                            <div style={{ textAlign: "center", padding: 40, color: C.muted }}>Loading tasks...</div>
-                        ) : activeTask ? (
-                            <div style={{ backgroundColor: C.card, borderRadius: 14, border: `1px solid ${activeTask.priority === "urgent" ? C.danger : C.border}`, boxShadow: "0 2px 12px rgba(0,0,0,0.06)", overflow: "hidden", marginBottom: 24 }}>
-                                {activeTask.priority === "urgent" && (
-                                    <div style={{ backgroundColor: `${C.danger}12`, borderBottom: `1px solid ${C.danger}33`, padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
-                                        <span style={{ fontSize: 16 }}>🔴</span>
-                                        <span style={{ fontSize: 12, fontWeight: 700, color: C.danger, textTransform: "uppercase", letterSpacing: "0.05em" }}>Urgent Delivery</span>
-                                    </div>
-                                )}
-                                <div style={{ padding: "16px 20px" }}>
-                                    <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Pickup</p>
-                                    <p style={{ fontSize: 15, fontWeight: 600, color: C.text, marginBottom: 16 }}>{activeTask.location}</p>
-
-                                    <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Dropoff</p>
-                                    <p style={{ fontSize: 15, fontWeight: 600, color: C.text, marginBottom: 24 }}>{activeTask.deliverTo}</p>
-
-                                    {activeTask.status === "Pending" ? (
-                                        <button
-                                            onClick={() => handleAccept(activeTask)}
-                                            style={{ width: "100%", padding: "14px 0", backgroundColor: C.primary, color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: 8 }}
+                        <div style={{
+                            display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                            gap: 16,
+                        }}>
+                            {[...AVAILABLE_TASKS]
+                                .sort((a, b) => {
+                                    const o = { critical: 0, high: 1, moderate: 2 };
+                                    return o[a.urgency] - o[b.urgency];
+                                })
+                                .map(task => {
+                                    const uc = urgencyConfig(task.urgency);
+                                    return (
+                                        <div key={task.id} style={{
+                                            background: C.card, borderRadius: 14, overflow: "hidden",
+                                            border: `2px solid ${uc.border}`, boxShadow: uc.glow,
+                                            transition: "all 0.2s", cursor: "pointer",
+                                        }}
+                                            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `${uc.glow}, 0 8px 24px rgba(0,0,0,0.1)`; }}
+                                            onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = uc.glow; }}
                                         >
-                                            Accept Delivery →
-                                        </button>
-                                    ) : (
-                                        <div style={{ display: "flex", gap: 10 }}>
-                                            <button
-                                                onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(activeTask.location)}`, "_blank")}
-                                                style={{ flex: 1, padding: "12px 0", backgroundColor: "#f3f4f6", color: C.text, border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer" }}
-                                            >
-                                                🗺️ Map
-                                            </button>
-                                            <button
-                                                onClick={() => handleComplete(activeTask)}
-                                                style={{ flex: 2, padding: "12px 0", backgroundColor: C.success, color: "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" }}
-                                            >
-                                                ✓ Mark Delivered
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            <div style={{ textAlign: "center", padding: "40px 20px", backgroundColor: C.card, borderRadius: 14, border: `1px dashed ${C.border}`, marginBottom: 24 }}>
-                                <div style={{ fontSize: 40, marginBottom: 12 }}>📡</div>
-                                <h3 style={{ fontSize: 16, fontWeight: 600, color: C.text, marginBottom: 4 }}>Searching for tasks</h3>
-                                <p style={{ fontSize: 13, color: C.muted }}>You'll be assigned a delivery when a site requests supplies.</p>
-                            </div>
-                        )}
-
-                        {/* History Log */}
-                        <div>
-                            <h2 style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 12 }}>Delivery History</h2>
-                            {historyTasks.length === 0 ? (
-                                <p style={{ fontSize: 13, color: C.muted }}>No completed tasks yet today.</p>
-                            ) : (
-                                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                                    {historyTasks.map(t => (
-                                        <div key={t.id} style={{ backgroundColor: C.card, padding: "12px 16px", borderRadius: 10, border: `1px solid ${C.border}` }}>
-                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                                                <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{t.deliverTo}</span>
-                                                <span style={{ fontSize: 11, fontWeight: 700, color: C.success, backgroundColor: `${C.success}15`, padding: "2px 8px", borderRadius: 12 }}>✓ Done</span>
+                                            {/* Card Header */}
+                                            <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.border}` }}>
+                                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                                                    <span style={{ fontSize: 14, fontWeight: 800, color: C.text }}>📍 {task.location.split(",")[0]}</span>
+                                                    <span style={{
+                                                        fontSize: 11, fontWeight: 700, padding: "2px 10px",
+                                                        borderRadius: 20, background: uc.bg, color: uc.color,
+                                                    }}>{uc.label}</span>
+                                                </div>
+                                                <p style={{ fontSize: 12, color: C.muted, margin: 0 }}>{task.location}</p>
                                             </div>
-                                            <p style={{ fontSize: 12, color: C.muted, margin: 0 }}>From: {t.location}</p>
+
+                                            {/* Card Body */}
+                                            <div style={{ padding: "12px 16px" }}>
+                                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                                                    <div>
+                                                        <p style={{ fontSize: 10, fontWeight: 600, color: C.muted, textTransform: "uppercase", margin: "0 0 2px" }}>Items</p>
+                                                        <p style={{ fontSize: 12, color: C.text, fontWeight: 500, margin: 0 }}>{task.items}</p>
+                                                    </div>
+                                                    <div style={{ textAlign: "right" }}>
+                                                        <p style={{ fontSize: 10, fontWeight: 600, color: C.muted, textTransform: "uppercase", margin: "0 0 2px" }}>ETA</p>
+                                                        <p style={{ fontSize: 14, fontWeight: 800, color: C.text, margin: 0 }}>{task.eta}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* CTA */}
+                                            <div style={{ padding: "0 16px 14px" }}>
+                                                <button onClick={() => handleVolunteer(task)} style={{
+                                                    width: "100%", padding: "10px 0", borderRadius: 8,
+                                                    border: `1.5px solid ${uc.color}`, background: "transparent",
+                                                    color: uc.color, fontSize: 13, fontWeight: 700, cursor: "pointer",
+                                                    transition: "all 0.15s",
+                                                }}
+                                                    onMouseEnter={e => { e.currentTarget.style.background = uc.color; e.currentTarget.style.color = "#fff"; }}
+                                                    onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = uc.color; }}
+                                                >🤝 Volunteer</button>
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+                                    );
+                                })}
                         </div>
                     </>
                 )}

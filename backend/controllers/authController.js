@@ -53,16 +53,21 @@ const registerUser = async (req, res) => {
         const cleanEmail = email.trim().toLowerCase();
         const cleanPhone = phone ? phone.replace(/\s/g, '') : null;
 
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        // Use admin API to create user — auto-confirmed, no email verification needed
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
             email: cleanEmail,
             password: password || cleanEmail,
-            options: {
-                data: { phone: cleanPhone, full_name: trimmedName, role },
-                emailRedirectTo: undefined
-            }
+            email_confirm: true,
+            user_metadata: { phone: cleanPhone, full_name: trimmedName, role },
         });
 
         if (authError) throw authError;
+
+        // Auto sign-in to get a session token
+        const { data: sessionData } = await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password: password || cleanEmail,
+        });
 
         // Edge case: Supabase returns user but no ID (shouldn't happen but guard)
         if (!authData.user || !authData.user.id) {
@@ -94,9 +99,9 @@ const registerUser = async (req, res) => {
         }
 
         res.status(201).json({
-            message: 'Registration successful. Check your email to verify your account.',
+            message: 'Registration successful!',
             user: authData.user,
-            session: authData.session
+            session: sessionData?.session || null
         });
     } catch (error) {
         // Handle duplicate registration

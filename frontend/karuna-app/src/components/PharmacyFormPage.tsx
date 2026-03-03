@@ -29,9 +29,8 @@ function Field({ label, required, children }: { label: string; required?: boolea
 }
 
 export function PharmacyFormPage() {
-    const [form, setForm] = useState({ fullName: "", email: "", phone: "", dob: "", address: "" });
-    const [step, setStep] = useState<"form" | "otp" | "done">("form");
-    const [otp, setOtp] = useState("");
+    const [form, setForm] = useState({ fullName: "", email: "", password: "", phone: "", dob: "", address: "" });
+    const [done, setDone] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -39,12 +38,13 @@ export function PharmacyFormPage() {
         e.preventDefault();
         setError(""); setLoading(true);
         try {
-            // Register as pharmacy
+            // Register as pharmacy (auto-confirmed, no OTP)
             const reg = await fetch(`${API}/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     email: form.email.trim(),
+                    password: form.password,
                     full_name: form.fullName.trim(),
                     phone: form.phone.replace(/\s/g, "") || undefined,
                     role: "pharmacy",
@@ -53,39 +53,33 @@ export function PharmacyFormPage() {
                 }),
             });
             const regData = await reg.json();
-            if (!reg.ok && !regData.message?.includes("already registered") && !regData.message?.includes("already exists")) {
+
+            if (!reg.ok && !regData.message?.includes("already exists")) {
                 throw new Error(regData.message || "Registration failed");
             }
-            // Send OTP
-            const otpRes = await fetch(`${API}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: form.email.trim() }),
-            });
-            const otpData = await otpRes.json();
-            if (!otpRes.ok) throw new Error(otpData.message || "Failed to send OTP");
-            setStep("otp");
-        } catch (err: unknown) {
-            setError((err as Error).message);
-        } finally { setLoading(false); }
-    };
 
-    const handleVerify = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(""); setLoading(true);
-        try {
-            const res = await fetch(`${API}/auth/verify-otp`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: form.email.trim(), token: otp }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Invalid OTP");
-            localStorage.setItem("karuna_token", data.access_token);
-            localStorage.setItem("karuna_role", data.user?.role || "pharmacy");
-            localStorage.setItem("karuna_user_name", data.user?.full_name || form.fullName);
-            setStep("done");
-            setTimeout(() => { window.location.href = "http://localhost:5180"; }, 2000);
+            // If user already exists, log them in directly
+            let session = regData.session;
+            if (!session) {
+                const loginRes = await fetch(`${API}/auth/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: form.email.trim(), password: form.password }),
+                });
+                const loginData = await loginRes.json();
+                if (!loginRes.ok) throw new Error(loginData.message || "Login failed");
+                session = loginData.session;
+                localStorage.setItem("karuna_token", loginData.access_token || session?.access_token || "");
+                localStorage.setItem("karuna_role", loginData.user?.role || "pharmacy");
+                localStorage.setItem("karuna_user_name", loginData.user?.full_name || form.fullName);
+            } else {
+                localStorage.setItem("karuna_token", session.access_token || "");
+                localStorage.setItem("karuna_role", regData.user?.user_metadata?.role || "pharmacy");
+                localStorage.setItem("karuna_user_name", regData.user?.user_metadata?.full_name || form.fullName);
+            }
+
+            setDone(true);
+            setTimeout(() => { window.location.href = "/pharmacy"; }, 1500);
         } catch (err: unknown) {
             setError((err as Error).message);
         } finally { setLoading(false); }
@@ -109,7 +103,7 @@ export function PharmacyFormPage() {
 
             <div style={{ maxWidth: 480, margin: "0 auto", padding: "28px 16px 56px" }}>
                 <div style={{ marginBottom: 20 }}>
-                    <button style={{ background: "none", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 4, marginBottom: 10 }}>← Back</button>
+                    <button onClick={() => window.history.back()} style={{ background: "none", border: "none", color: C.muted, fontSize: 14, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 4, marginBottom: 10 }}>← Back</button>
                     <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Registration</p>
                     <h1 style={{ fontSize: 22, fontWeight: 800, color: C.text }}>Pharmacy Form</h1>
                     <p style={{ fontSize: 14, color: C.muted, marginTop: 4 }}>Register your pharmacy to start supplying relief sites.</p>
@@ -120,7 +114,7 @@ export function PharmacyFormPage() {
                         <p style={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase", margin: 0 }}>Pharmacy Details</p>
                     </div>
 
-                    {step === "form" ? (
+                    {!done ? (
                         <form onSubmit={handleSubmit} style={{ padding: "20px 24px 24px" }}>
 
                             <Field label="Full Name" required>
@@ -133,7 +127,12 @@ export function PharmacyFormPage() {
                                 <input style={inputStyle} type="email" placeholder="pharmacy@example.com"
                                     value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required
                                     onFocus={e => (e.target.style.borderColor = C.primary)} onBlur={e => (e.target.style.borderColor = C.border)} />
-                                <p style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>📧 Used for OTP verification login</p>
+                            </Field>
+
+                            <Field label="Password" required>
+                                <input style={inputStyle} type="password" placeholder="Create a password (min 6 chars)"
+                                    value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required minLength={6}
+                                    onFocus={e => (e.target.style.borderColor = C.primary)} onBlur={e => (e.target.style.borderColor = C.border)} />
                             </Field>
 
                             <Field label="Phone Number" required>
@@ -176,28 +175,10 @@ export function PharmacyFormPage() {
                                 {loading ? "Registering…" : "REGISTER AND CONTINUE →"}
                             </button>
                         </form>
-                    ) : step === "otp" ? (
-                        <form onSubmit={handleVerify} style={{ padding: "20px 24px 24px" }}>
-                            <p style={{ fontSize: 14, color: C.muted, marginBottom: 16, textAlign: "center" }}>
-                                A 6-digit OTP was sent to <strong>{form.email}</strong>
-                            </p>
-                            <Field label="Enter OTP" required>
-                                <input style={{ ...inputStyle, textAlign: "center", fontSize: 28, fontWeight: 700, letterSpacing: "0.3em" }}
-                                    type="text" placeholder="000000" maxLength={6}
-                                    value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ""))}
-                                    autoFocus required
-                                    onFocus={e => (e.target.style.borderColor = C.primary)} onBlur={e => (e.target.style.borderColor = C.border)} />
-                            </Field>
-                            {error && <p style={{ color: C.danger, fontSize: 13, marginBottom: 12, textAlign: "center" }}>{error}</p>}
-                            <button type="submit" disabled={loading} style={{ width: "100%", padding: "14px 0", backgroundColor: loading ? C.muted : C.primary, color: "#fff", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", marginBottom: 12 }}>
-                                {loading ? "Verifying…" : "VERIFY & ENTER DASHBOARD →"}
-                            </button>
-                            <button type="button" onClick={() => setStep("form")} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontSize: 13, width: "100%", textDecoration: "underline" }}>← Change email</button>
-                        </form>
                     ) : (
                         <div style={{ padding: "28px 24px", textAlign: "center" }}>
                             <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-                            <p style={{ fontWeight: 700, color: C.success, fontSize: 16 }}>Login Successful!</p>
+                            <p style={{ fontWeight: 700, color: C.success, fontSize: 16 }}>Registration Successful!</p>
                             <p style={{ color: C.muted, fontSize: 14, marginTop: 8 }}>Redirecting to Pharmacy Dashboard…</p>
                         </div>
                     )}
